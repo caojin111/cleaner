@@ -9,6 +9,7 @@ import SwiftUI
 import Photos
 import Foundation
 import UIKit
+import OSLog
 
 struct PhotosView: View {
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
@@ -16,39 +17,75 @@ struct PhotosView: View {
     @State private var currentItemIndex = 0
     @State private var showingAnalysis = false
     @State private var showingSettings = false
+    @State private var isProcessingSwipe = false // 防止连续滑动
+    @Binding var selectedTab: Int
     
     var body: some View {
-        NavigationView {
+        GeometryReader { geometry in
             ZStack {
                 Color.seniorBackground.ignoresSafeArea()
                 
-                if photoAnalyzer.isAnalyzing {
-                    analysisView
-                } else if photoAnalyzer.foundDuplicates.isEmpty {
-                    emptyStateView
-                } else {
-                    mainContentView
+                VStack(spacing: 0) {
+                    // 顶部安全区域适配 + 设置按钮
+                    VStack(spacing: 0) {
+                        // 状态栏安全区域
+                        Rectangle()
+                            .fill(Color.clear)
+                            .frame(height: geometry.safeAreaInsets.top)
+                            .onAppear {
+                                Logger.ui.debug("状态栏安全区域高度: \(geometry.safeAreaInsets.top)")
+                            }
+                        
+                        // 设置按钮区域 - 仅在非完成状态显示
+                        if currentItemIndex < photoAnalyzer.foundDuplicates.count || photoAnalyzer.isAnalyzing || photoAnalyzer.foundDuplicates.isEmpty {
+                            HStack {
+                                Spacer()
+                                Button(action: {
+                                    showingSettings = true
+                                    Logger.ui.debug("用户点击设置按钮")
+                                }) {
+                                    Image(systemName: "gearshape.fill")
+                                        .font(.title3)
+                                        .foregroundColor(.seniorPrimary)
+                                }
+                            }
+                            .padding(.horizontal, 20)
+                            .padding(.vertical, 15) // 增加垂直padding
+                        }
+                    }
+                    
+                    // 主要内容
+                    Group {
+                        if photoAnalyzer.isAnalyzing {
+                            analysisView
+                        } else if photoAnalyzer.foundDuplicates.isEmpty {
+                            emptyStateView
+                        } else {
+                            mainContentWithoutButtons
+                        }
+                    }
+                    .frame(maxHeight: geometry.size.height - geometry.safeAreaInsets.bottom - geometry.safeAreaInsets.top - 200)
+                    
+                    Spacer()
                 }
-            }
-            .navigationTitle("照片清理")
-            .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        showingSettings = true
-                    }) {
-                        Image(systemName: "gearshape.fill")
-                            .font(.title3)
-                            .foregroundColor(.seniorPrimary)
+                
+                // 底部按钮 - 固定在屏幕底部
+                if !photoAnalyzer.isAnalyzing && !photoAnalyzer.foundDuplicates.isEmpty && currentItemIndex < photoAnalyzer.foundDuplicates.count {
+                    VStack {
+                        Spacer()
+                        actionButtons
+                            .padding(.bottom, geometry.safeAreaInsets.bottom > 0 ? geometry.safeAreaInsets.bottom : 20)
+                            .offset(y: 65) // 向下偏移65像素（原50+15）避免遮挡相似度文字
                     }
                 }
             }
-            .onAppear {
-                startAnalysisIfNeeded()
-            }
-            .sheet(isPresented: $showingSettings) {
-                SettingsView()
-            }
+        }
+        .onAppear {
+            startAnalysisIfNeeded()
+            Logger.ui.debug("PhotosView 已显示，开始检查分析状态")
+        }
+        .sheet(isPresented: $showingSettings) {
+            SettingsView()
         }
     }
     
@@ -132,27 +169,49 @@ struct PhotosView: View {
             // 顶部统计
             statsHeader
             
-            // 卡片区域
+            // 卡片区域 - 固定合理高度
             cardStackView
+                .frame(maxHeight: 380) // 固定最大高度，确保按钮有空间
             
-            // 底部操作按钮
-            actionButtons
+            Spacer() // 弹性空间
+            
+            // 底部操作按钮（仅在有待处理项目时显示）
+            if currentItemIndex < photoAnalyzer.foundDuplicates.count {
+                actionButtons
+                    .padding(.bottom, 20) // 额外底部安全距离
+            }
+        }
+    }
+    
+    // MARK: - Main Content Without Buttons
+    
+    private var mainContentWithoutButtons: some View {
+        VStack(spacing: 0) {
+            // 顶部统计
+            statsHeader
+            
+            // 卡片区域 - 扩大高度以利用更多空间
+            cardStackView
+                .frame(maxHeight: 500) // 调整高度，为向下移动的按钮预留空间
+                .offset(y: 10) // 图片预览区域下移10像素
+            
+            Spacer() // 弹性空间
         }
     }
     
     // MARK: - Stats Header
     
     private var statsHeader: some View {
-        VStack(spacing: 12) {
-            HStack {
-                StatCard(
+        VStack(spacing: 8) {
+            HStack(spacing: 15) { // 增加卡片间距提升美观性
+                CompactStatCard(
                     title: "重复照片",
                     value: "\(photoAnalyzer.foundDuplicates.count)",
                     icon: "photo.stack",
                     color: .orange
                 )
                 
-                StatCard(
+                CompactStatCard(
                     title: "可节省",
                     value: ByteCountFormatter.string(fromByteCount: photoAnalyzer.estimatedSpaceSavings(), countStyle: .file),
                     icon: "externaldrive.badge.minus",
@@ -164,11 +223,22 @@ struct PhotosView: View {
             ProgressView(value: Double(currentItemIndex), total: Double(photoAnalyzer.foundDuplicates.count))
                 .progressViewStyle(LinearProgressViewStyle())
                 .accentColor(.seniorPrimary)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, 16) // 恢复到合适的padding
         }
-        .padding(20)
-        .background(Color.white)
-        .shadow(color: .gray.opacity(0.1), radius: 4, x: 0, y: 2)
+        .padding(.top, 25) // 调整顶部间距，确保在安全区域内
+        .padding(.horizontal, 16) // 恢复水平padding
+        .padding(.bottom, 15) // 增加底部padding提升美观性
+        .background(
+            Color.white
+                .clipShape(
+                    RoundedRectangle(cornerRadius: 16) // 增加圆角提升美观性
+                )
+        )
+        .shadow(color: .gray.opacity(0.1), radius: 8, x: 0, y: 4) // 优化阴影效果
+        .padding(.horizontal, 12) // 为背景卡片添加外边距
+        .onAppear {
+            Logger.ui.debug("统计卡片已显示: 重复照片数量=\(photoAnalyzer.foundDuplicates.count), 当前索引=\(currentItemIndex)")
+        }
     }
     
     // MARK: - Card Stack View
@@ -186,6 +256,7 @@ struct PhotosView: View {
                     .scaleEffect(0.95)
                     .opacity(0.6)
                     .offset(y: 10)
+                    .allowsHitTesting(false) // 背景卡片不可交互
                 }
                 
                 // 当前卡片
@@ -198,46 +269,59 @@ struct PhotosView: View {
                         handleKeep(item)
                     }
                 )
+                .allowsHitTesting(!isProcessingSwipe) // 处理期间禁用交互
             } else {
                 // 完成状态
                 completionView
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 20)
+        .id("cardStack_\(currentItemIndex)") // 确保卡片栈在索引变化时重新渲染
     }
     
     // MARK: - Action Buttons
     
     private var actionButtons: some View {
         HStack(spacing: 30) {
-            // 保留按钮
-            ActionButton(
-                icon: "heart.fill",
-                title: "保留",
-                color: .seniorSuccess,
-                action: {
-                    if currentItemIndex < photoAnalyzer.foundDuplicates.count {
-                        handleKeep(photoAnalyzer.foundDuplicates[currentItemIndex])
-                    }
-                }
-            )
-            
             // 删除按钮
             ActionButton(
                 icon: "trash.fill",
                 title: "删除",
                 color: .seniorDanger,
                 action: {
-                    if currentItemIndex < photoAnalyzer.foundDuplicates.count {
+                    if currentItemIndex < photoAnalyzer.foundDuplicates.count && !isProcessingSwipe {
                         handleDelete(photoAnalyzer.foundDuplicates[currentItemIndex])
                     }
                 }
             )
+            .disabled(isProcessingSwipe) // 处理期间禁用按钮
+            .opacity(isProcessingSwipe ? 0.6 : 1.0)
+            
+            // 保留按钮
+            ActionButton(
+                icon: "heart.fill",
+                title: "保留",
+                color: .seniorSuccess,
+                action: {
+                    if currentItemIndex < photoAnalyzer.foundDuplicates.count && !isProcessingSwipe {
+                        handleKeep(photoAnalyzer.foundDuplicates[currentItemIndex])
+                    }
+                }
+            )
+            .disabled(isProcessingSwipe) // 处理期间禁用按钮
+            .opacity(isProcessingSwipe ? 0.6 : 1.0)
         }
         .padding(.horizontal, 40)
-        .padding(.vertical, 20)
-        .background(Color.white)
+        .padding(.top, 16)
+        .padding(.bottom, 16)
+        .background(
+            Color.white
+                .ignoresSafeArea(.all, edges: .bottom)
+        )
+        .shadow(color: .gray.opacity(0.15), radius: 8, x: 0, y: -4)
+        .onAppear {
+            Logger.ui.debug("操作按钮已显示: 按钮尺寸=72x72, 位置偏移=65像素")
+        }
     }
     
     // MARK: - Completion View
@@ -262,7 +346,10 @@ struct PhotosView: View {
             }
             
             Button("查看回收站") {
-                // TODO: 切换到回收站Tab
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    selectedTab = 2 // 回收站Tab的索引（更新后的位置）
+                }
+                Logger.logPageNavigation(from: "PhotosView", to: "RecycleBinView")
             }
             .font(.seniorBody)
             .fontWeight(.semibold)
@@ -287,26 +374,44 @@ struct PhotosView: View {
     }
     
     private func handleDelete(_ item: MediaItem) {
+        guard !isProcessingSwipe else { return } // 防止重复处理
+        
+        isProcessingSwipe = true
+        Logger.ui.debug("开始处理删除操作: \(item.fileName)")
+        
         recycleBinManager.moveToRecycleBin(item)
-        nextItem()
         
         // 触觉反馈
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
         impactFeedback.impactOccurred()
+        
+        nextItem()
     }
     
     private func handleKeep(_ item: MediaItem) {
+        guard !isProcessingSwipe else { return } // 防止重复处理
+        
+        isProcessingSwipe = true
+        Logger.ui.debug("开始处理保留操作: \(item.fileName)")
+        
         photoAnalyzer.markItemForKeeping(item)
-        nextItem()
         
         // 触觉反馈
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
         impactFeedback.impactOccurred()
+        
+        nextItem()
     }
     
     private func nextItem() {
         withAnimation(.easeInOut(duration: 0.3)) {
             currentItemIndex += 1
+        }
+        
+        // 延迟重置滑动保护状态，确保动画完成
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            isProcessingSwipe = false
+            Logger.ui.debug("滑动保护状态已重置，当前索引: \(currentItemIndex)")
         }
     }
 }
@@ -320,24 +425,40 @@ struct SwipeablePhotoCard: View {
     
     @State private var offset: CGSize = .zero
     @State private var rotation: Double = 0
+    @State private var photoImage: UIImage?
+    @State private var isSwipeAnimating = false // 防止滑动动画期间的重复操作
+    
+    // 用于唯一标识卡片，防止状态混乱
+    private var cardID: String {
+        "\(item.fileName)_\(item.id)"
+    }
     
     var body: some View {
         VStack(spacing: 16) {
             // 照片预览
-            AsyncImage(url: nil) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(Color.gray.opacity(0.3))
-                    .overlay(
-                        Image(systemName: "photo")
-                            .font(.system(size: 50))
-                            .foregroundColor(.white)
-                    )
+            Group {
+                if let image = photoImage {
+                    Image(uiImage: image)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                } else {
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color.gray.opacity(0.3))
+                        .overlay(
+                            VStack {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                    .scaleEffect(1.5)
+                                    .padding(.bottom, 8)
+                                
+                                Text("加载中...")
+                                    .font(.seniorCaption)
+                                    .foregroundColor(.white)
+                            }
+                        )
+                }
             }
-            .frame(width: 300, height: 400)
+            .frame(width: 280, height: 320)
             .clipShape(RoundedRectangle(cornerRadius: 16))
             
             // 照片信息
@@ -380,8 +501,11 @@ struct SwipeablePhotoCard: View {
         .gesture(
             DragGesture()
                 .onChanged { value in
-                    offset = value.translation
-                    rotation = Double(value.translation.width / 10)
+                    // 只有在非滑动动画状态时才响应手势
+                    if !isSwipeAnimating {
+                        offset = value.translation
+                        rotation = Double(value.translation.width / 10)
+                    }
                 }
                 .onEnded { value in
                     handleSwipeEnd(value)
@@ -391,6 +515,45 @@ struct SwipeablePhotoCard: View {
             // 滑动指示器
             swipeIndicators
         )
+        .onAppear {
+            resetCardState()
+            loadPhotoImage()
+        }
+        .id(cardID) // 确保每张卡片有唯一标识
+    }
+    
+    private func resetCardState() {
+        offset = .zero
+        rotation = 0
+        photoImage = nil
+        isSwipeAnimating = false
+        Logger.ui.debug("重置卡片状态: \(item.fileName)")
+    }
+    
+    private func loadPhotoImage() {
+        guard let asset = item.asset else { return }
+        
+        let imageManager = PHImageManager.default()
+        let requestOptions = PHImageRequestOptions()
+        requestOptions.deliveryMode = .highQualityFormat
+        requestOptions.resizeMode = .exact
+        requestOptions.isNetworkAccessAllowed = true
+        
+        imageManager.requestImage(
+            for: asset,
+            targetSize: CGSize(width: 280, height: 320),
+            contentMode: .aspectFill,
+            options: requestOptions
+        ) { image, info in
+            DispatchQueue.main.async {
+                if let image = image {
+                    self.photoImage = image
+                    Logger.ui.debug("成功加载照片: \(self.item.fileName)")
+                } else if let error = info?[PHImageErrorKey] as? Error {
+                    Logger.logError(error, context: "加载照片失败: \(self.item.fileName)")
+                }
+            }
+        }
     }
     
     private var swipeIndicators: some View {
@@ -434,24 +597,34 @@ struct SwipeablePhotoCard: View {
     }
     
     private func handleSwipeEnd(_ value: DragGesture.Value) {
+        guard !isSwipeAnimating else { return } // 防止重复滑动
+        
         if value.translation.width < -Constants.swipeThreshold {
             // 左滑删除
-            withAnimation(.easeOut(duration: 0.5)) {
+            isSwipeAnimating = true
+            Logger.ui.debug("执行左滑删除: \(item.fileName)")
+            
+            withAnimation(.easeOut(duration: 0.3)) {
                 offset = CGSize(width: -1000, height: 0)
                 rotation = -30
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                onSwipeLeft(item)
-            }
+            
+            // 立即执行回调，不再延迟
+            onSwipeLeft(item)
+            
         } else if value.translation.width > Constants.swipeThreshold {
             // 右滑保留
-            withAnimation(.easeOut(duration: 0.5)) {
+            isSwipeAnimating = true
+            Logger.ui.debug("执行右滑保留: \(item.fileName)")
+            
+            withAnimation(.easeOut(duration: 0.3)) {
                 offset = CGSize(width: 1000, height: 0)
                 rotation = 30
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                onSwipeRight(item)
-            }
+            
+            // 立即执行回调，不再延迟
+            onSwipeRight(item)
+            
         } else {
             // 回弹
             withAnimation(.spring()) {
@@ -463,6 +636,41 @@ struct SwipeablePhotoCard: View {
 }
 
 // MARK: - Supporting Views
+
+// MARK: - Compact Stat Card (紧凑版统计卡片)
+
+struct CompactStatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+    let color: Color
+    
+    var body: some View {
+        VStack(spacing: 4) { // 从6缩小到4
+            Image(systemName: icon)
+                .font(.body) // 从.title3进一步缩小到.body
+                .foregroundColor(color)
+            
+            Text(value)
+                .font(.subheadline) // 从.seniorBody进一步缩小到.subheadline
+                .fontWeight(.bold)
+                .foregroundColor(.seniorText)
+                .lineLimit(1)
+                .minimumScaleFactor(0.7) // 从0.8进一步缩小到0.7
+            
+            Text(title)
+                .font(.caption2) // 从.caption进一步缩小到.caption2
+                .foregroundColor(.seniorSecondary)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8) // 从10缩小到8
+        .padding(.horizontal, 10) // 从12缩小到10
+        .background(
+            RoundedRectangle(cornerRadius: 8) // 从10缩小到8
+                .fill(color.opacity(0.06)) // 从0.08进一步降低到0.06，更淡的背景
+        )
+    }
+}
 
 struct StatCard: View {
     let title: String
@@ -502,21 +710,21 @@ struct ActionButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 8) {
+            VStack(spacing: 7) { // 从8缩小到7，保持比例
                 Image(systemName: icon)
-                    .font(.title2)
+                    .font(.title3) // 从.title2缩小到.title3
                     .foregroundColor(.white)
                 
                 Text(title)
-                    .font(.seniorCaption)
+                    .font(.caption) // 从.seniorCaption缩小到.caption
                     .fontWeight(.semibold)
                     .foregroundColor(.white)
             }
-            .frame(width: 80, height: 80)
+            .frame(width: 72, height: 72) // 从80x80缩小10%到72x72
             .background(
                 Circle()
                     .fill(color)
-                    .shadow(color: color.opacity(0.3), radius: 8, x: 0, y: 4)
+                    .shadow(color: color.opacity(0.3), radius: 7, x: 0, y: 3) // 阴影也相应缩小
             )
         }
     }
@@ -550,5 +758,5 @@ struct SettingsView: View {
 }
 
 #Preview {
-    PhotosView()
+    PhotosView(selectedTab: .constant(0))
 } 

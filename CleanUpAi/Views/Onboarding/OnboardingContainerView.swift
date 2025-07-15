@@ -24,6 +24,8 @@ struct OnboardingContainerView: View {
             VStack {
                 // 进度指示器
                 HStack {
+                    Spacer()
+                    
                     ForEach(0..<totalPages, id: \.self) { index in
                         Circle()
                             .fill(index <= currentPage ? Color.seniorPrimary : Color.gray.opacity(0.3))
@@ -32,17 +34,6 @@ struct OnboardingContainerView: View {
                     }
                     
                     Spacer()
-                    
-                    // 跳过按钮
-                    if currentPage < totalPages - 1 {
-                        Button("跳过") {
-                            withAnimation {
-                                currentPage = totalPages - 1
-                            }
-                        }
-                        .font(.seniorCaption)
-                        .foregroundColor(.seniorSecondary)
-                    }
                 }
                 .padding(.horizontal, 20)
                 .padding(.top, 20)

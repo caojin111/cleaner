@@ -17,6 +17,7 @@ extension Logger {
     static let permissions = Logger(subsystem: subsystem, category: "Permissions")
     static let analytics = Logger(subsystem: subsystem, category: "Analytics")
     static let photoAnalyzer = Logger(subsystem: subsystem, category: "PhotoAnalyzer")
+    static let video = Logger(subsystem: subsystem, category: "VideoAnalyzer")
     static let recycleBin = Logger(subsystem: subsystem, category: "RecycleBin")
     static let subscription = Logger(subsystem: subsystem, category: "Subscription")
     

@@ -13,6 +13,7 @@ struct SplashView: View {
     @State private var isActive = false
     @State private var logoScale: CGFloat = 0.8
     @State private var logoOpacity: Double = 0.0
+    @StateObject private var userSettings = UserSettingsManager.shared
     
     var body: some View {
         ZStack {
@@ -60,6 +61,11 @@ struct SplashView: View {
                         .font(.caption2)
                         .foregroundColor(.white.opacity(0.6))
                         .opacity(logoOpacity)
+                        .onTapGesture(count: 5) {
+                            // 连续点击5次版本号重置首次启动状态（仅用于测试）
+                            userSettings.resetFirstLaunch()
+                            Logger.analytics.info("已重置首次启动状态（测试功能）")
+                        }
                 }
                 .padding(.bottom, 50)
             }
@@ -68,7 +74,11 @@ struct SplashView: View {
             startAnimations()
         }
         .fullScreenCover(isPresented: $isActive) {
-            OnboardingContainerView()
+            if userSettings.isFirstLaunch {
+                OnboardingContainerView()
+            } else {
+                MainTabView()
+            }
         }
     }
     
@@ -86,7 +96,8 @@ struct SplashView: View {
             withAnimation(.easeInOut(duration: 0.5)) {
                 isActive = true
             }
-            Logger.logPageNavigation(from: "Splash", to: "Onboarding")
+            let destination = userSettings.isFirstLaunch ? "Onboarding" : "MainApp"
+            Logger.logPageNavigation(from: "Splash", to: destination)
         }
     }
 }

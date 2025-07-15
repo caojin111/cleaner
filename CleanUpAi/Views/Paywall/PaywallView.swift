@@ -14,6 +14,7 @@ struct PaywallView: View {
     @State private var showMainApp = false
     @State private var animateFeatures = false
     @Environment(\.dismiss) private var dismiss
+    @StateObject private var userSettings = UserSettingsManager.shared
     
     var body: some View {
         ZStack {
@@ -65,7 +66,8 @@ struct PaywallView: View {
             HStack {
                 Spacer()
                 Button(action: {
-                    // 允许用户跳过，直接进入主应用
+                    // 允许用户跳过，直接进入主应用，同时标记onboarding完成
+                    userSettings.markOnboardingCompleted()
                     showMainApp = true
                 }) {
                     Image(systemName: "xmark.circle.fill")
@@ -182,6 +184,8 @@ struct PaywallView: View {
             
             // 稍后决定按钮
             Button(action: {
+                // 即使用户选择稍后决定，也要标记onboarding已完成
+                userSettings.markOnboardingCompleted()
                 showMainApp = true
                 Logger.logPageNavigation(from: "Paywall", to: "MainApp")
             }) {
@@ -240,7 +244,10 @@ struct PaywallView: View {
         Logger.subscription.info("开始订阅流程: \(selectedPlan.title)")
         
         // TODO: 实现真实的订阅逻辑
-        // 这里先直接跳转到主应用
+        // 标记用户已完成首次启动流程
+        userSettings.markOnboardingCompleted()
+        
+        // 跳转到主应用
         showMainApp = true
         Logger.logPageNavigation(from: "Paywall", to: "MainApp")
     }

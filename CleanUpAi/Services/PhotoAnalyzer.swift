@@ -32,31 +32,26 @@ class PhotoAnalyzer: ObservableObject {
         foundDuplicates.removeAll()
         allPhotos.removeAll()
         
-        do {
-            // 1. 获取所有照片和视频
-            let assets = await fetchAllAssets()
-            photoCount = assets.count
-            Logger.logFileAnalysisStart(count: photoCount)
-            
-            // 2. 创建MediaItem对象
-            let mediaItems = await createMediaItems(from: assets)
-            allPhotos = mediaItems
-            analysisProgress = 0.3
-            
-            // 3. 分析重复项
-            let duplicates = await findDuplicates(in: mediaItems)
-            foundDuplicates = duplicates
-            analysisProgress = 0.8
-            
-            // 4. 按相似度排序
-            foundDuplicates.sort { $0.similarityScore > $1.similarityScore }
-            analysisProgress = 1.0
-            
-            Logger.logFileAnalysisComplete(duplicates: duplicates.count)
-            
-        } catch {
-            Logger.logError(error, context: "照片分析")
-        }
+        // 1. 获取所有照片和视频
+        let assets = await fetchAllAssets()
+        photoCount = assets.count
+        Logger.logFileAnalysisStart(count: photoCount)
+        
+        // 2. 创建MediaItem对象
+        let mediaItems = await createMediaItems(from: assets)
+        allPhotos = mediaItems
+        analysisProgress = 0.3
+        
+        // 3. 分析重复项
+        let duplicates = await findDuplicates(in: mediaItems)
+        foundDuplicates = duplicates
+        analysisProgress = 0.8
+        
+        // 4. 按相似度排序
+        foundDuplicates.sort { $0.similarityScore > $1.similarityScore }
+        analysisProgress = 1.0
+        
+        Logger.logFileAnalysisComplete(duplicates: duplicates.count)
         
         isAnalyzing = false
     }

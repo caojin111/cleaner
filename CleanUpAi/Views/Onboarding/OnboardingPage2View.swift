@@ -134,15 +134,19 @@ struct OnboardingPage2View: View {
         isRequestingPermissions = true
         
         Task {
+            // 同时请求照片库和通知权限
             let photoPermissionGranted = await permissionManager.requestPhotoLibraryPermission()
             let notificationPermissionGranted = await permissionManager.requestNotificationPermission()
             
             await MainActor.run {
                 isRequestingPermissions = false
                 
+                Logger.analytics.info("权限请求结果 - 照片库: \(photoPermissionGranted), 通知: \(notificationPermissionGranted)")
+                
                 if !photoPermissionGranted {
                     showPermissionAlert = true
                 } else {
+                    // 照片库权限是必须的，通知权限可选
                     Logger.logPageNavigation(from: "Onboarding-2", to: "Onboarding-3")
                     withAnimation(.easeInOut(duration: 0.3)) {
                         currentPage += 1

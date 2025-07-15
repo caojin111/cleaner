@@ -20,7 +20,7 @@ struct MainTabView: View {
             
             TabView(selection: $selectedTab) {
                 // 照片清理
-                PhotosView()
+                PhotosView(selectedTab: $selectedTab)
                     .tabItem {
                         VStack {
                             Image(systemName: selectedTab == 0 ? "photo.fill" : "photo")
@@ -43,36 +43,12 @@ struct MainTabView: View {
                     }
                     .tag(1)
                 
-                // 音频清理
-                AudioView()
-                    .tabItem {
-                        VStack {
-                            Image(systemName: selectedTab == 2 ? "music.note" : "music.note")
-                                .font(.title3)
-                            Text("音频")
-                                .font(.seniorCaption)
-                        }
-                    }
-                    .tag(2)
-                
-                // 文件清理
-                FilesView()
-                    .tabItem {
-                        VStack {
-                            Image(systemName: selectedTab == 3 ? "doc.fill" : "doc")
-                                .font(.title3)
-                            Text("文件")
-                                .font(.seniorCaption)
-                        }
-                    }
-                    .tag(3)
-                
                 // 回收站
                 RecycleBinView()
                     .tabItem {
                         VStack {
                             ZStack {
-                                Image(systemName: selectedTab == 4 ? "trash.fill" : "trash")
+                                Image(systemName: selectedTab == 2 ? "trash.fill" : "trash")
                                     .font(.title3)
                                 
                                 // 回收站徽章
@@ -93,12 +69,25 @@ struct MainTabView: View {
                                 .font(.seniorCaption)
                         }
                     }
-                    .tag(4)
+                    .tag(2)
+                
+                // 更多
+                MoreView()
+                    .tabItem {
+                        VStack {
+                            Image(systemName: selectedTab == 3 ? "ellipsis.circle.fill" : "ellipsis.circle")
+                                .font(.title3)
+                            Text("更多")
+                                .font(.seniorCaption)
+                        }
+                    }
+                    .tag(3)
             }
             .accentColor(.seniorPrimary)
             .onAppear {
                 setupTabBarAppearance()
                 Logger.logPageNavigation(from: "Paywall", to: "MainApp")
+                Logger.ui.debug("主界面已加载，当前Tab结构：照片、视频、回收站、更多")
             }
         }
     }
