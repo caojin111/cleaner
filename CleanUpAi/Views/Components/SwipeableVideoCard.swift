@@ -264,7 +264,10 @@ struct SwipeableVideoCard: View {
     }
     
     private func handleSwipeEnd(_ value: DragGesture.Value) {
-        guard !isSwipeAnimating else { return }
+        guard !isSwipeAnimating else { 
+            Logger.video.debug("滑动动画被阻止：正在处理中")
+            return 
+        }
         
         if value.translation.width < -Constants.swipeThreshold {
             // 左滑删除
@@ -276,8 +279,10 @@ struct SwipeableVideoCard: View {
                 rotation = -30
             }
             
-            // 立即执行回调，与照片滑动逻辑保持一致
-            onSwipeLeft(item)
+            // 延迟执行回调，确保动画开始
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                onSwipeLeft(item)
+            }
             
         } else if value.translation.width > Constants.swipeThreshold {
             // 右滑保留
@@ -289,8 +294,10 @@ struct SwipeableVideoCard: View {
                 rotation = 30
             }
             
-            // 立即执行回调，与照片滑动逻辑保持一致
-            onSwipeRight(item)
+            // 延迟执行回调，确保动画开始
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                onSwipeRight(item)
+            }
             
         } else {
             // 回弹

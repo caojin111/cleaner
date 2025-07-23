@@ -27,10 +27,11 @@ struct Constants {
     
     // MARK: - Subscription Prices
     struct Subscription {
-        static let yearlyPrice = "¥29.99/年"
+        static let yearlyOriginalPrice = "$49.99/年" // 原价（划线显示）
+        static let yearlyPrice = "$29.99/年" // 折扣价
         static let yearlyTrial = "7天免费试用"
-        static let monthlyPrice = "¥9.99/月"
-        static let weeklyPrice = "¥4.99/周"
+        static let monthlyPrice = "$9.99/月"
+        static let weeklyPrice = "$4.99/周"
     }
     
     // MARK: - Onboarding Content

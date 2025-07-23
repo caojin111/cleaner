@@ -16,83 +16,60 @@ struct OnboardingPage2View: View {
     @State private var showPermissionAlert = false
     
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 36) {
             Spacer()
-            
-            // 权限图标
+            // 图标
             Image(systemName: "checkmark.shield")
-                .font(.system(size: 80, weight: .light))
-                .foregroundColor(.seniorPrimary)
-            
-            // 标题和说明
-            VStack(spacing: 20) {
+                .font(.system(size: 70, weight: .light))
+                .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
+            // 文案
+            VStack(spacing: 18) {
                 Text(Constants.Onboarding.page2Title)
-                    .font(.seniorTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.seniorText)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                
-                Text("为了提供最佳的清理体验，我们需要您的授权")
-                    .font(.seniorBody)
-                    .foregroundColor(.seniorSecondary)
+                Text("为了提供更好的清理体验，我们需要您的授权")
+                    .font(.system(size: 20, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 24)
             }
-            
-            // 权限列表
+            // 权限卡片
             VStack(spacing: 16) {
                 PermissionRow(
                     icon: "📸",
                     title: "照片库权限",
-                    description: "分析和清理相似图片",
+                    description: "分析和清理相似照片",
                     status: permissionManager.getPermissionStatusText(for: "photos")
                 )
-                
                 PermissionRow(
                     icon: "🔔",
                     title: "通知权限",
                     description: "及时提醒清理建议",
                     status: permissionManager.getPermissionStatusText(for: "notifications")
                 )
-                
                 PermissionRow(
                     icon: "📁",
                     title: "文件访问",
-                    description: "您可以选择要清理的文件",
+                    description: "可选择要清理的文件",
                     status: "手动选择"
                 )
             }
-            .padding(.horizontal, 30)
-            
+            .padding(.horizontal, 24)
             Spacer()
-            
             // 按钮组
             VStack(spacing: 16) {
-                // 授权按钮
-                Button(action: {
-                    requestPermissions()
-                }) {
-                    HStack {
-                        if isRequestingPermissions {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .scaleEffect(0.8)
-                        }
-                        
+                Button(action: { requestPermissions() }) {
                         Text(isRequestingPermissions ? "请求中..." : Constants.Onboarding.page2Button)
-                            .font(.seniorBody)
-                            .fontWeight(.semibold)
-                    }
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, minHeight: Constants.buttonHeight)
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity, minHeight: 56)
                     .background(
-                        RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                            .fill(Color.seniorPrimary)
+                            LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
                     )
+                        .cornerRadius(28)
                 }
                 .disabled(isRequestingPermissions)
-                
-                // 继续按钮（权限授权后显示）
                 if permissionManager.hasPhotoLibraryAccess {
                     Button(action: {
                         withAnimation(.easeInOut(duration: 0.3)) {
@@ -100,26 +77,21 @@ struct OnboardingPage2View: View {
                         }
                         Logger.logPageNavigation(from: "Onboarding-2", to: "Onboarding-3")
                     }) {
-                        HStack {
                             Text("继续")
-                                .font(.seniorBody)
-                                .fontWeight(.semibold)
-                            
-                            Image(systemName: "arrow.right")
-                                .font(.body)
-                        }
-                        .foregroundColor(.seniorPrimary)
-                        .frame(maxWidth: .infinity, minHeight: Constants.buttonHeight)
+                            .font(.system(size: 20, weight: .bold, design: .rounded))
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity, minHeight: 56)
                         .background(
-                            RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                                .stroke(Color.seniorPrimary, lineWidth: 2)
+                                LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
                         )
+                            .cornerRadius(28)
                     }
                 }
             }
-            .padding(.horizontal, 30)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 36)
         }
+        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
         .alert("权限设置", isPresented: $showPermissionAlert) {
             Button("去设置") {
                 permissionManager.openAppSettings()

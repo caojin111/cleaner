@@ -18,113 +18,76 @@ struct OnboardingPage4View: View {
     @State private var animateNumbers = false
     
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 36) {
             Spacer()
-            
-            // 统计数字动画
+            // 统计动画
             ZStack {
-                // 背景圆圈
                 Circle()
-                    .fill(Color.seniorPrimary.opacity(0.1))
-                    .frame(width: 200, height: 200)
-                
+                    .fill(Color(red: 0.66, green: 1, blue: 0.81).opacity(0.18))
+                    .frame(width: 180, height: 180)
                 VStack(spacing: 16) {
-                    // 照片数量
                     Text("\(animateNumbers ? formatNumber(photoCount) : formatNumber(0))")
                         .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(.seniorPrimary)
-                        .contentTransition(.numericText())
-                    
+                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
                     Text("张照片")
-                        .font(.seniorTitle)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.seniorText)
-                    
-                    if isAnalyzing {
-                        ProgressView()
-                            .progressViewStyle(CircularProgressViewStyle(tint: .seniorPrimary))
-                            .scaleEffect(0.8)
+                        .font(.system(size: 22, weight: .semibold, design: .rounded))
+                        .foregroundColor(.black)
                     }
                 }
-            }
-            
-            // 文字内容
-            VStack(spacing: 20) {
-                Text("您有 \(formatNumber(photoCount)) 张图片等待清理")
-                    .font(.seniorTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.seniorText)
+            // 文案
+            VStack(spacing: 18) {
+                Text("您有 \(formatNumber(photoCount)) 张照片待清理")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                
                 Text(Constants.Onboarding.page4Subtitle)
-                    .font(.seniorBody)
-                    .foregroundColor(.seniorSecondary)
+                    .font(.system(size: 20, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 30)
-                
-                // 预期收益
+                    .padding(.horizontal, 24)
                 if photoCount > 0 {
                     VStack(spacing: 12) {
                         StatRow(
-                            icon: "🗂️",
+                            icon: "🟢",
                             title: "预计重复照片",
                             value: calculateEstimatedDuplicates(),
                             color: .orange
                         )
-                        
                         StatRow(
-                            icon: "💾",
+                            icon: "🟢",
                             title: "预计节省空间",
                             value: calculateEstimatedSpaceSavings(),
                             color: .green
                         )
-                        
                         StatRow(
-                            icon: "⚡",
+                            icon: "🟢",
                             title: "性能提升",
                             value: "显著改善",
                             color: .blue
                         )
                     }
-                    .padding(.horizontal, 30)
+                    .padding(.horizontal, 24)
                 }
             }
-            
             Spacer()
-            
-            // 开始按钮
+            // 按钮
             Button(action: {
                 Logger.logPageNavigation(from: "Onboarding-4", to: "Paywall")
                 showPaywall = true
             }) {
-                HStack {
                     Text("开始清理")
-                        .font(.seniorBody)
-                        .fontWeight(.bold)
-                    
-                    Image(systemName: "arrow.right.circle.fill")
-                        .font(.title3)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, minHeight: Constants.buttonHeight + 10)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                        .fill(
-                            LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.seniorPrimary,
-                                    Color.seniorPrimary.opacity(0.8)
-                                ]),
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
+                        LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
                         )
-                        .shadow(color: Color.seniorPrimary.opacity(0.3), radius: 8, x: 0, y: 4)
-                )
+                    .cornerRadius(28)
             }
-            .padding(.horizontal, 30)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 36)
         }
+        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
         .onAppear {
             startPhotoAnalysis()
         }

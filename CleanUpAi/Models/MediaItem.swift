@@ -157,6 +157,7 @@ struct SubscriptionPlan: Identifiable {
     let id = UUID()
     let title: String
     let price: String
+    let originalPrice: String? // 原价（用于显示折扣）
     let duration: String
     let features: [String]
     let isRecommended: Bool
@@ -167,8 +168,9 @@ struct SubscriptionPlan: Identifiable {
         SubscriptionPlan(
             title: "年度订阅",
             price: Constants.Subscription.yearlyPrice,
+            originalPrice: Constants.Subscription.yearlyOriginalPrice,
             duration: "年",
-            features: ["智能清理重复文件", "无限制文件分析", "优先客户支持", "高级清理算法"],
+            features: ["无限制清理重复文件", "无限制文件分析", "优先客户支持", "高级清理算法"],
             isRecommended: true,
             productIdentifier: "com.cleanupai.yearly",
             trialDays: 7
@@ -176,8 +178,9 @@ struct SubscriptionPlan: Identifiable {
         SubscriptionPlan(
             title: "月度订阅",
             price: Constants.Subscription.monthlyPrice,
+            originalPrice: nil,
             duration: "月",
-            features: ["智能清理重复文件", "无限制文件分析", "基础客户支持"],
+            features: ["无限制清理重复文件", "无限制文件分析", "基础客户支持"],
             isRecommended: false,
             productIdentifier: "com.cleanupai.monthly",
             trialDays: nil
@@ -185,8 +188,9 @@ struct SubscriptionPlan: Identifiable {
         SubscriptionPlan(
             title: "周度订阅",
             price: Constants.Subscription.weeklyPrice,
+            originalPrice: nil,
             duration: "周",
-            features: ["智能清理重复文件", "有限文件分析"],
+            features: ["无限制清理重复文件", "有限文件分析"],
             isRecommended: false,
             productIdentifier: "com.cleanupai.weekly",
             trialDays: nil

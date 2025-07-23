@@ -11,63 +11,45 @@ import OSLog
 
 struct SplashView: View {
     @State private var isActive = false
-    @State private var logoScale: CGFloat = 0.8
-    @State private var logoOpacity: Double = 0.0
+    @State private var logoScale: CGFloat = 1.0
+    @State private var logoOpacity: Double = 1.0
+    @State private var dotPulse: Bool = false
     @StateObject private var userSettings = UserSettingsManager.shared
     
     var body: some View {
         ZStack {
-            // 背景渐变
-            LinearGradient(
-                gradient: Gradient(colors: [
-                    Color.seniorPrimary.opacity(0.8),
-                    Color.seniorPrimary
-                ]),
-                startPoint: .topLeading,
-                endPoint: .bottomTrailing
-            )
-            .ignoresSafeArea()
-            
-            VStack(spacing: 40) {
+            Color.white.ignoresSafeArea()
+            VStack(spacing: 0) {
                 Spacer()
-                
-                // App Logo
-                VStack(spacing: 20) {
-                    Image(systemName: "sparkles.rectangle.stack")
-                        .font(.system(size: Constants.logoSize, weight: .light))
-                        .foregroundColor(.white)
+                // LOGO
+                Image("Logo")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 420, height: 210)
+                    .opacity(logoOpacity)
                         .scaleEffect(logoScale)
-                        .opacity(logoOpacity)
-                    
-                    // App Name
-                    Text(Constants.appName)
-                        .font(.seniorLargeTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.white)
-                        .opacity(logoOpacity)
+                // 绿色动效点缀
+                HStack(spacing: 8) {
+                    ForEach(0..<5) { i in
+                        Circle()
+                            .fill(LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .top, endPoint: .bottom))
+                            .frame(width: dotPulse && i == 2 ? 18 : 10, height: dotPulse && i == 2 ? 18 : 10)
+                            .opacity(dotPulse && i == 2 ? 1.0 : 0.7)
+                            .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: dotPulse)
                 }
-                
-                Spacer()
-                Spacer()
-                
-                // Developer Info
-                VStack(spacing: 8) {
-                    Text(Constants.developerInfo)
-                        .font(.seniorCaption)
-                        .foregroundColor(.white.opacity(0.8))
-                        .opacity(logoOpacity)
-                    
-                    Text("v\(Constants.appVersion)")
-                        .font(.caption2)
-                        .foregroundColor(.white.opacity(0.6))
-                        .opacity(logoOpacity)
-                        .onTapGesture(count: 5) {
-                            // 连续点击5次版本号重置首次启动状态（仅用于测试）
-                            userSettings.resetFirstLaunch()
-                            Logger.analytics.info("已重置首次启动状态（测试功能）")
-                        }
                 }
-                .padding(.bottom, 50)
+                .padding(.vertical, 18)
+                Spacer()
+                // 底部开发者和版本号
+                VStack(spacing: 6) {
+                    Text("Made with LazyCat")
+                        .font(.system(size: 20, weight: .medium, design: .rounded))
+                        .foregroundColor(Color(red: 0.2, green: 0.7, blue: 0.4))
+                    Text("v1.0.0")
+                        .font(.system(size: 16, weight: .regular, design: .rounded))
+                        .foregroundColor(Color.gray)
+                }
+                .padding(.bottom, 40)
             }
         }
         .onAppear {
@@ -84,14 +66,15 @@ struct SplashView: View {
     
     private func startAnimations() {
         Logger.logAppLaunch()
-        
-        // Logo动画
         withAnimation(.easeInOut(duration: 0.8)) {
             logoOpacity = 1.0
             logoScale = 1.0
         }
-        
-        // 页面跳转延时
+        // 绿色点缀动效
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            dotPulse = true
+        }
+        // 页面自动跳转延时
         DispatchQueue.main.asyncAfter(deadline: .now() + Constants.splashDuration) {
             withAnimation(.easeInOut(duration: 0.5)) {
                 isActive = true

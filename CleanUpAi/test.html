@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #007AFF;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        p {
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        .success {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #c3e6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>✅ WebView测试成功</h1>
+        <div class="success">
+            <p><strong>恭喜！</strong> WebView功能正常工作。</p>
+            <p>如果您能看到这个页面，说明：</p>
+            <ul>
+                <li>HTML文件加载成功</li>
+                <li>WebView组件工作正常</li>
+                <li>样式渲染正确</li>
+            </ul>
+        </div>
+        <p>现在可以尝试加载完整的隐私政策文件了。</p>
+        <p>如果隐私政策文件仍然无法加载，请检查：</p>
+        <ul>
+            <li>文件路径是否正确</li>
+            <li>文件是否已添加到Xcode项目中</li>
+            <li>文件权限是否正确</li>
+        </ul>
+    </div>
+</body>
+</html> 

@@ -19,6 +19,9 @@ struct VideosView: View {
     @State private var isProcessingSwipe = false // 防止连续滑动
     @State private var cacheStatus = (thumbnails: 0, durations: 0)
     @State private var cacheTimer: Timer?
+    @State private var showPaywall = false // 新增：Paywall弹窗
+    @StateObject private var userSettings = UserSettingsManager.shared // 新增：订阅和滑动状态
+    @State private var pageResetKey = UUID() // 新增：强制刷新页面
     
     var body: some View {
         GeometryReader { geometry in
@@ -26,7 +29,7 @@ struct VideosView: View {
                 Color.seniorBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // 顶部安全区域适配
+                    // 顶部安全区域适配 + 设置按钮
                     VStack(spacing: 0) {
                         // 状态栏安全区域
                         Rectangle()
@@ -35,8 +38,23 @@ struct VideosView: View {
                             .onAppear {
                                 Logger.ui.debug("视频页状态栏安全区域高度: \(geometry.safeAreaInsets.top)")
                             }
+                        // 设置按钮区域 - 仅在有重复视频且非分析状态显示
+                        if !videoAnalyzer.isAnalyzing && (currentItemIndex < videoAnalyzer.foundDuplicates.count && !videoAnalyzer.foundDuplicates.isEmpty) {
+                        HStack {
+                            Spacer()
+                            Button(action: {
+                                // TODO: 打开设置（如有视频设置页可跳转，否则可复用照片设置页）
+                                Logger.ui.debug("用户点击视频设置按钮")
+                            }) {
+                                Image(systemName: "gearshape.fill")
+                                    .font(.title3)
+                                    .foregroundColor(.seniorPrimary)
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 15)
+                        }
                     }
-                    
                     // 主要内容
                     Group {
                         if videoAnalyzer.isAnalyzing {
@@ -48,10 +66,9 @@ struct VideosView: View {
                         }
                     }
                     .frame(maxHeight: geometry.size.height - geometry.safeAreaInsets.bottom - geometry.safeAreaInsets.top - 200)
-                    
+                    .id(pageResetKey) // 强制刷新主内容
                     Spacer()
                 }
-                
                 // 底部按钮 - 固定在屏幕底部
                 let duplicates = videoAnalyzer.foundDuplicates
                 if !videoAnalyzer.isAnalyzing && !duplicates.isEmpty && currentItemIndex < duplicates.count {
@@ -78,6 +95,17 @@ struct VideosView: View {
             // 内存警告时清理缓存
             videoAnalyzer.clearThumbnailCache()
             Logger.video.warning("收到内存警告，已清理视频缓存")
+        }
+        // Paywall弹窗
+        .fullScreenCover(isPresented: $showPaywall) {
+            PaywallView()
+        }
+        .onChange(of: showPaywall) { newValue in
+            if !newValue {
+                isProcessingSwipe = false // Paywall关闭时重置滑动状态
+                currentItemIndex = 0 // Paywall关闭时重置索引
+                pageResetKey = UUID() // Paywall关闭时强制刷新页面
+            }
         }
     }
     
@@ -158,8 +186,10 @@ struct VideosView: View {
     
     private var mainContentWithoutButtons: some View {
         VStack(spacing: 0) {
-            // 顶部统计
-            statsHeader
+            // 顶部统计（仅在清理未完成时显示）
+            if currentItemIndex < videoAnalyzer.foundDuplicates.count {
+                statsHeader
+            }
             
             // 卡片区域
             cardStackView
@@ -190,6 +220,29 @@ struct VideosView: View {
                 )
             }
             
+            // 剩余滑动次数显示
+            HStack {
+                Spacer()
+                HStack(spacing: 6) {
+                    Image(systemName: userSettings.isSubscribed ? "infinity" : "hand.tap")
+                        .font(.caption)
+                        .foregroundColor(userSettings.isSubscribed ? .seniorPrimary : .seniorSecondary)
+                    
+                    Text(userSettings.isSubscribed ? "无限滑动" : "剩余 \(userSettings.remainingSwipes)/10")
+                        .font(.caption)
+                        .fontWeight(.medium)
+                        .foregroundColor(userSettings.isSubscribed ? .seniorPrimary : .seniorSecondary)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill((userSettings.isSubscribed ? Color.seniorPrimary : Color.seniorSecondary).opacity(0.1))
+                )
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            
             // 进度条
             ProgressView(value: Double(currentItemIndex), total: Double(videoAnalyzer.foundDuplicates.count))
                 .progressViewStyle(LinearProgressViewStyle())
@@ -197,33 +250,6 @@ struct VideosView: View {
                 .padding(.horizontal, 16)
             
             // 缓存状态指示器
-            let duplicatesCount = videoAnalyzer.foundDuplicates.count
-            if cacheStatus.thumbnails < duplicatesCount && duplicatesCount > 0 {
-                HStack {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                        .rotationEffect(.degrees(45))
-                    
-                    Text("正在优化体验... \(cacheStatus.thumbnails)/\(duplicatesCount)")
-                        .font(.caption2)
-                        .foregroundColor(.orange)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-            } else if cacheStatus.thumbnails >= duplicatesCount && duplicatesCount > 0 {
-                HStack {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption2)
-                        .foregroundColor(.green)
-                    
-                    Text("已优化，可流畅滑动")
-                        .font(.caption2)
-                        .foregroundColor(.green)
-                }
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-            }
         }
         .padding(.top, 25)
         .padding(.horizontal, 16)
@@ -267,13 +293,21 @@ struct VideosView: View {
                 SwipeableVideoCard(
                     item: duplicates[currentItemIndex],
                     onSwipeLeft: { item in
-                        handleDelete(item)
+                        if userSettings.isSubscribed || userSettings.canSwipeToday {
+                            handleDelete(item)
+                        } else {
+                            showPaywall = true
+                        }
                     },
                     onSwipeRight: { item in
-                        handleKeep(item)
+                        if userSettings.isSubscribed || userSettings.canSwipeToday {
+                            handleKeep(item)
+                        } else {
+                            showPaywall = true
+                        }
                     }
                 )
-                .allowsHitTesting(!isProcessingSwipe)
+                .allowsHitTesting(!isProcessingSwipe) // 处理期间禁用滑动
                 .onAppear {
                     Logger.video.debug("当前视频卡片显示: \(duplicates[currentItemIndex].fileName)")
                 }
@@ -283,7 +317,7 @@ struct VideosView: View {
             }
         }
         .padding(.horizontal, 20)
-        .id("videoCardStack_\(currentItemIndex)")
+        .id(pageResetKey) // 强制刷新卡片栈
     }
     
     // MARK: - Action Buttons
@@ -323,11 +357,6 @@ struct VideosView: View {
         .padding(.horizontal, 40)
         .padding(.top, 16)
         .padding(.bottom, 16)
-        .background(
-            Color.white
-                .ignoresSafeArea(.all, edges: .bottom)
-        )
-        .shadow(color: .gray.opacity(0.15), radius: 8, x: 0, y: -4)
         .onAppear {
             Logger.video.debug("视频操作按钮已显示: 按钮尺寸=72x72, 位置偏移=65像素")
         }
@@ -352,6 +381,17 @@ struct VideosView: View {
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
+            }
+            
+            // 新增：本次清理统计（只统计被删除的）
+            let deletedItems = videoAnalyzer.foundDuplicates.filter { !$0.isMarkedForKeeping }
+            VStack(spacing: 8) {
+                Text("本次共处理\(deletedItems.count)个视频")
+                    .font(.seniorBody)
+                    .foregroundColor(.seniorText)
+                Text("节省空间：\(ByteCountFormatter.string(fromByteCount: deletedItems.reduce(0) { $0 + $1.size }, countStyle: .file))")
+                    .font(.seniorBody)
+                    .foregroundColor(.seniorText)
             }
             
             Button("查看回收站") {
@@ -381,13 +421,21 @@ struct VideosView: View {
     }
     
     private func handleDelete(_ item: MediaItem) {
-        guard !isProcessingSwipe else { return }
+        guard !isProcessingSwipe else { 
+            Logger.video.debug("删除操作被阻止：正在处理中")
+            return 
+        }
         guard currentItemIndex < videoAnalyzer.foundDuplicates.count else { return }
-        
+        // 新增：滑动次数判断
+        guard userSettings.isSubscribed || userSettings.canSwipeToday else {
+            showPaywall = true
+            return
+        }
         isProcessingSwipe = true
         Logger.video.debug("开始处理删除操作: \(item.fileName)")
         
         recycleBinManager.moveToRecycleBin(item)
+        userSettings.increaseSwipeCount() // 新增：增加滑动计数
         
         // 触觉反馈
         let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
@@ -397,13 +445,21 @@ struct VideosView: View {
     }
     
     private func handleKeep(_ item: MediaItem) {
-        guard !isProcessingSwipe else { return }
+        guard !isProcessingSwipe else { 
+            Logger.video.debug("保留操作被阻止：正在处理中")
+            return 
+        }
         guard currentItemIndex < videoAnalyzer.foundDuplicates.count else { return }
-        
+        // 新增：滑动次数判断
+        guard userSettings.isSubscribed || userSettings.canSwipeToday else {
+            showPaywall = true
+            return
+        }
         isProcessingSwipe = true
         Logger.video.debug("开始处理保留操作: \(item.fileName)")
         
         videoAnalyzer.markItemForKeeping(item)
+        userSettings.increaseSwipeCount() // 新增：增加滑动计数
         
         // 触觉反馈
         let impactFeedback = UIImpactFeedbackGenerator(style: .light)
@@ -425,7 +481,7 @@ struct VideosView: View {
             currentItemIndex += 1
         }
         
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isProcessingSwipe = false
             Logger.video.debug("滑动保护状态已重置，当前索引: \(currentItemIndex)")
         }

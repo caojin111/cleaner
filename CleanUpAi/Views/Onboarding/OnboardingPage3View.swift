@@ -13,22 +13,18 @@ import Photos
 struct OnboardingPage3View: View {
     @Binding var currentPage: Int
     @State private var animatePhotos = false
-    @State private var showAnalysisAnimation = false
     @State private var randomPhotos: [UIImage] = []
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
     
     var body: some View {
-        VStack(spacing: 40) {
+        VStack(spacing: 36) {
             Spacer()
-            
-            // 图片回顾动画 - 扑克牌叠放展示
+            // 图标/动画
             ZStack {
-                // 背景圆圈
                 Circle()
-                    .fill(Color.seniorPrimary.opacity(0.1))
-                    .frame(width: 220, height: 220)
-                
-                // 扑克牌叠放展示
+                    .fill(Color(red: 0.66, green: 1, blue: 0.81).opacity(0.18))
+                    .frame(width: 180, height: 180)
+                // 保持原有图片动画
                 ZStack {
                     ForEach(0..<min(randomPhotos.count, 5), id: \.self) { index in
                         let reverseIndex = min(randomPhotos.count, 5) - 1 - index
@@ -42,73 +38,47 @@ struct OnboardingPage3View: View {
                 }
                 .scaleEffect(animatePhotos ? 1.0 : 0.8)
                 .opacity(animatePhotos ? 1.0 : 0.3)
-                
-                // 分析指示器
-                if showAnalysisAnimation {
-                    Image(systemName: "magnifyingglass")
-                        .font(.system(size: 30, weight: .light))
-                        .foregroundColor(.seniorPrimary)
-                        .background(
-                            Circle()
-                                .fill(Color.white)
-                                .frame(width: 60, height: 60)
-                                .shadow(color: .gray.opacity(0.3), radius: 8)
-                        )
-                        .transition(.scale.combined(with: .opacity))
-                }
             }
-            
-            // 文字内容
-            VStack(spacing: 20) {
+            // 文案
+            VStack(spacing: 18) {
                 Text(Constants.Onboarding.page3Title)
-                    .font(.seniorTitle)
-                    .fontWeight(.bold)
-                    .foregroundColor(.seniorText)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                
                 Text(Constants.Onboarding.page3Subtitle)
-                    .font(.seniorBody)
-                    .foregroundColor(.seniorSecondary)
+                    .font(.system(size: 20, weight: .regular, design: .rounded))
+                    .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
-                    .padding(.horizontal, 30)
-                
-                // 功能特点
+                    .padding(.horizontal, 24)
                 VStack(alignment: .leading, spacing: 12) {
-                    FeatureItem(icon: "🔍", text: "智能识别相似图片")
-                    FeatureItem(icon: "📊", text: "分析存储空间占用")
-                    FeatureItem(icon: "🏆", text: "找出最值得保留的照片")
-                    FeatureItem(icon: "🗂️", text: "按时间和类型整理")
+                    FeatureItem(icon: "🟢", text: "智能识别相似照片")
+                    FeatureItem(icon: "🟢", text: "分析存储空间占用")
+                    FeatureItem(icon: "🟢", text: "找出最值得保留的照片")
+                    FeatureItem(icon: "🟢", text: "按时间和类型整理")
                 }
-                .padding(.horizontal, 30)
+                .padding(.horizontal, 24)
             }
-            
             Spacer()
-            
-            // 继续按钮
+            // 按钮
             Button(action: {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     currentPage += 1
                 }
                 Logger.logPageNavigation(from: "Onboarding-3", to: "Onboarding-4")
             }) {
-                HStack {
                     Text("查看我的照片")
-                        .font(.seniorBody)
-                        .fontWeight(.semibold)
-                    
-                    Image(systemName: "arrow.right")
-                        .font(.body)
-                }
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity, minHeight: Constants.buttonHeight)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                    RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                        .fill(Color.seniorPrimary)
+                        LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
                 )
+                    .cornerRadius(28)
             }
-            .padding(.horizontal, 30)
-            .padding(.bottom, 30)
+            .padding(.horizontal, 32)
+            .padding(.bottom, 36)
         }
+        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
         .onAppear {
             loadRandomPhotos()
             startAnimations()
@@ -209,20 +179,6 @@ struct OnboardingPage3View: View {
         // 图片动画
         withAnimation(.easeInOut(duration: 0.8)) {
             animatePhotos = true
-        }
-        
-        // 分析指示器动画
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-            withAnimation(.easeInOut(duration: 0.5)) {
-                showAnalysisAnimation = true
-            }
-            
-            // 循环动画
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    showAnalysisAnimation = false
-                }
-            }
         }
     }
 }
