@@ -25,7 +25,7 @@ struct MainTabView: View {
                         VStack {
                             Image(systemName: selectedTab == 0 ? "photo.fill" : "photo")
                                 .font(.title3)
-                            Text("照片")
+                            Text("navigation.photos".localized)
                                 .font(.seniorCaption)
                         }
                     }
@@ -37,7 +37,7 @@ struct MainTabView: View {
                         VStack {
                             Image(systemName: selectedTab == 1 ? "video.fill" : "video")
                                 .font(.title3)
-                            Text("视频")
+                            Text("navigation.videos".localized)
                                 .font(.seniorCaption)
                         }
                     }
@@ -65,7 +65,7 @@ struct MainTabView: View {
                                         .offset(x: 8, y: -8)
                                 }
                             }
-                            Text("回收站")
+                            Text("navigation.recycle_bin".localized)
                                 .font(.seniorCaption)
                         }
                     }
@@ -77,7 +77,7 @@ struct MainTabView: View {
                         VStack {
                             Image(systemName: selectedTab == 3 ? "ellipsis.circle.fill" : "ellipsis.circle")
                                 .font(.title3)
-                            Text("更多")
+                            Text("navigation.more".localized)
                                 .font(.seniorCaption)
                         }
                     }

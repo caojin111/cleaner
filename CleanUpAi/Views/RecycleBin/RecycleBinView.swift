@@ -38,7 +38,7 @@ struct RecycleBinView: View {
                                 .progressViewStyle(CircularProgressViewStyle(tint: .white))
                                 .scaleEffect(1.5)
                             
-                            Text(selectedItem != nil ? "正在删除图片..." : "正在批量删除...")
+                            Text(selectedItem != nil ? "recycle_bin.deleting_photo".localized : "recycle_bin.batch_deleting".localized)
                                 .font(.seniorBody)
                                 .foregroundColor(.white)
                         }
@@ -50,12 +50,15 @@ struct RecycleBinView: View {
                     }
                 }
             }
-            .navigationTitle("回收站")
+            .navigationTitle("recycle_bin.title".localized)
             .navigationBarTitleDisplayMode(.large)
+            .toolbarColorScheme(.light, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbarBackground(Color.white, for: .navigationBar)
             .toolbar {
                 if !recycleBinManager.isEmpty {
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("清空") {
+                        Button("recycle_bin.clear_all".localized) {
                             showingBatchDeleteAlert = true
                             Logger.ui.debug("用户点击清空回收站按钮")
                         }
@@ -63,29 +66,31 @@ struct RecycleBinView: View {
                         .disabled(isDeleting) // 删除期间禁用按钮
                     }
                 }
+                
+
             }
-            .alert("确认批量删除", isPresented: $showingBatchDeleteAlert) {
-                Button("取消", role: .cancel) { }
-                Button("清空", role: .destructive) {
+            .alert("recycle_bin.confirm_batch_delete".localized, isPresented: $showingBatchDeleteAlert) {
+                Button("common.cancel".localized, role: .cancel) { }
+                Button("recycle_bin.clear".localized, role: .destructive) {
                     performBatchDelete()
                 }
             } message: {
-                Text("将批量永久删除回收站中的 \(recycleBinManager.itemCount) 个文件，此操作不可恢复")
+                Text("recycle_bin.batch_delete_confirm".localized(recycleBinManager.itemCount))
             }
-            .alert("确认删除图片", isPresented: $showingSingleDeleteAlert) {
-                Button("取消", role: .cancel) { 
+            .alert("recycle_bin.confirm_delete_photo".localized, isPresented: $showingSingleDeleteAlert) {
+                Button("common.cancel".localized, role: .cancel) { 
                     selectedItem = nil
                 }
-                Button("删除", role: .destructive) {
+                Button("recycle_bin.delete".localized, role: .destructive) {
                     if let item = selectedItem {
                         performSingleDelete(item: item)
                     }
                 }
             } message: {
                 if let item = selectedItem {
-                    Text("将永久删除图片「\(item.fileName)」，此操作不可恢复")
+                    Text("recycle_bin.delete_confirm".localized(item.fileName))
                 } else {
-                    Text("将永久删除该图片，此操作不可恢复")
+                                          Text("recycle_bin.delete_confirm_generic".localized)
                 }
             }
         }
@@ -135,12 +140,12 @@ struct RecycleBinView: View {
                 .foregroundColor(.seniorSecondary)
             
             VStack(spacing: 16) {
-                Text("回收站为空")
+                Text("recycle_bin.empty".localized)
                     .font(.seniorTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.seniorText)
                 
-                Text("删除的文件会暂时保存在这里\n您可以随时恢复或永久删除")
+                Text("recycle_bin.empty_subtitle".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
@@ -155,8 +160,9 @@ struct RecycleBinView: View {
     
     private var itemListView: some View {
         VStack(spacing: 0) {
-            // 统计信息
+            // 统计信息 - 减少顶部间距
             statsHeader
+                .padding(.top, 8) // 减少顶部间距，让卡片更接近导航栏
             
             // 图片网格
             ScrollView {
@@ -180,7 +186,8 @@ struct RecycleBinView: View {
                     }
                 }
                 .padding(.horizontal, 20)
-                .padding(.vertical, 16)
+                .padding(.top, 8) // 减少顶部间距
+                .padding(.bottom, 16)
             }
         }
     }
@@ -188,24 +195,25 @@ struct RecycleBinView: View {
     // MARK: - Stats Header
     
     private var statsHeader: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) { // 减少内部间距
             HStack {
                 StatCard(
-                    title: "文件数量",
+                    title: "recycle_bin.file_count".localized,
                     value: "\(recycleBinManager.itemCount)",
                     icon: "doc.badge.gearshape",
                     color: .blue
                 )
                 
                 StatCard(
-                    title: "占用空间",
+                    title: "recycle_bin.space_used".localized,
                     value: recycleBinManager.formattedTotalSize,
                     icon: "externaldrive.badge.xmark",
                     color: .red
                 )
             }
         }
-        .padding(20)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12) // 减少垂直间距
         .background(Color.white)
         .shadow(color: .gray.opacity(0.1), radius: 4, x: 0, y: 2)
     }
@@ -239,7 +247,7 @@ struct RecycleBinItemRow: View {
                                     .progressViewStyle(CircularProgressViewStyle(tint: .gray))
                                     .scaleEffect(0.8)
                                 
-                                Text("加载中")
+                                Text("recycle_bin.loading".localized)
                                     .font(.caption2)
                                     .foregroundColor(.gray)
                             }
@@ -276,7 +284,7 @@ struct RecycleBinItemRow: View {
                                 Image(systemName: "arrow.counterclockwise")
                                     .font(.title3)
                                 
-                                Text("恢复")
+                                Text("recycle_bin.restore".localized)
                                     .font(.caption2)
                             }
                             .foregroundColor(.white)
@@ -295,7 +303,7 @@ struct RecycleBinItemRow: View {
                                 Image(systemName: "trash")
                                     .font(.title3)
                                 
-                                Text("删除")
+                                Text("recycle_bin.delete".localized)
                                     .font(.caption2)
                             }
                             .foregroundColor(.white)
@@ -352,7 +360,7 @@ struct RecycleBinItemRow: View {
         let formatter = DateFormatter()
         formatter.dateStyle = .short
         formatter.timeStyle = .none
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current
         return formatter.string(from: date)
     }
 }

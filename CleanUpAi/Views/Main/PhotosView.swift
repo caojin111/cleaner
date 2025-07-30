@@ -22,6 +22,8 @@ struct PhotosView: View {
     @State private var showPaywall = false // 新增：Paywall弹窗
     @StateObject private var userSettings = UserSettingsManager.shared // 新增：订阅和滑动状态
     @State private var pageResetKey = UUID() // 新增：强制刷新页面
+    @State private var showingPhotoDetails = false // 新增：显示照片详情
+    @State private var photoDetailsText = "" // 新增：照片详情文本
     
     var body: some View {
         GeometryReader { geometry in
@@ -42,6 +44,17 @@ struct PhotosView: View {
                         // 设置按钮区域 - 仅在有重复照片且非分析状态显示
                         if !photoAnalyzer.isAnalyzing && (currentItemIndex < photoAnalyzer.foundDuplicates.count && !photoAnalyzer.foundDuplicates.isEmpty) {
                         HStack {
+                            // 调试按钮（仅在开发环境显示）
+                            #if DEBUG
+                            Button(action: {
+                                showPhotoDetails()
+                            }) {
+                                Image(systemName: "info.circle")
+                                    .font(.title3)
+                                    .foregroundColor(.blue)
+                            }
+                            #endif
+                            
                             Spacer()
                             Button(action: {
                                 showingSettings = true
@@ -95,6 +108,28 @@ struct PhotosView: View {
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView()
         }
+        // 评分弹窗
+        .overlay(
+            Group {
+                if userSettings.shouldShowRating {
+                    RatingView(isPresented: $userSettings.shouldShowRating)
+                }
+            }
+        )
+        // 感谢弹窗
+        .alert("rate_us.thank_you.title".localized, isPresented: $userSettings.shouldShowThankYou) {
+            Button("rate_us.thank_you.ok".localized) {
+                userSettings.markThankYouShown()
+            }
+        } message: {
+            Text("rate_us.thank_you.subtitle".localized)
+        }
+        // 照片详情弹窗
+        .alert("照片详情", isPresented: $showingPhotoDetails) {
+            Button("确定") { }
+        } message: {
+            Text(photoDetailsText)
+        }
         .onChange(of: showPaywall) { newValue in
             if !newValue {
                 isProcessingSwipe = false // Paywall关闭时重置滑动状态
@@ -117,12 +152,12 @@ struct PhotosView: View {
                     .frame(width: 200)
                     .accentColor(.seniorPrimary)
                 
-                Text("正在分析照片...")
+                Text("photos.analyzing".localized)
                     .font(.seniorTitle)
                     .fontWeight(.semibold)
                     .foregroundColor(.seniorText)
                 
-                Text("已处理 \(Int(photoAnalyzer.analysisProgress * 100))%")
+                Text("photos.progress".localized(Int(photoAnalyzer.analysisProgress * 100)))
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
             }
@@ -146,18 +181,18 @@ struct PhotosView: View {
                 .foregroundColor(.seniorSecondary)
             
             VStack(spacing: 16) {
-                Text("没有发现重复照片")
+                Text("photos.no_duplicates".localized)
                     .font(.seniorTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.seniorText)
                 
-                Text("您的照片库看起来很整洁！\n继续保持良好的管理习惯。")
+                Text("photos.no_duplicates_subtitle".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
             }
             
-            Button("重新分析") {
+            Button("photos.reanalyze".localized) {
                 Task {
                     await photoAnalyzer.startAnalysis()
                 }
@@ -224,14 +259,14 @@ struct PhotosView: View {
         VStack(spacing: 8) {
             HStack(spacing: 15) { // 增加卡片间距提升美观性
                 CompactStatCard(
-                    title: "重复照片",
+                    title: "photos.duplicate_photos".localized,
                     value: "\(photoAnalyzer.foundDuplicates.count)",
                     icon: "photo.stack",
                     color: .orange
                 )
                 
                 CompactStatCard(
-                    title: "可节省",
+                    title: "photos.space_savings".localized,
                     value: ByteCountFormatter.string(fromByteCount: photoAnalyzer.estimatedSpaceSavings(), countStyle: .file),
                     icon: "externaldrive.badge.minus",
                     color: .green
@@ -246,7 +281,7 @@ struct PhotosView: View {
                         .font(.caption)
                         .foregroundColor(userSettings.isSubscribed ? .seniorPrimary : .seniorSecondary)
                     
-                    Text(userSettings.isSubscribed ? "无限滑动" : "剩余 \(userSettings.remainingSwipes)/10")
+                    Text(userSettings.isSubscribed ? "photos.unlimited_swipes".localized : "photos.remaining_swipes".localized(userSettings.remainingSwipes))
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(userSettings.isSubscribed ? .seniorPrimary : .seniorSecondary)
@@ -299,6 +334,7 @@ struct PhotosView: View {
                     .opacity(0.6)
                     .offset(y: 10)
                     .allowsHitTesting(false) // 背景卡片不可交互
+                    .id("background_\(currentItemIndex + 1)") // 确保背景卡片正确更新
                 }
                 
                 // 当前卡片
@@ -320,13 +356,16 @@ struct PhotosView: View {
                     }
                 )
                 .allowsHitTesting(!isProcessingSwipe) // 处理期间禁用滑动
+                .id("current_\(currentItemIndex)") // 确保当前卡片正确更新
             } else {
                 // 完成状态
                 completionView
             }
         }
         .padding(.horizontal, 20)
-        .id(pageResetKey) // 强制刷新卡片栈
+        .onChange(of: currentItemIndex) { newIndex in
+            Logger.ui.debug("卡片索引已更新: \(newIndex)")
+        }
     }
     
     // MARK: - Action Buttons
@@ -336,7 +375,7 @@ struct PhotosView: View {
             // 删除按钮
             ActionButton(
                 icon: "trash.fill",
-                title: "删除",
+                title: "photos.delete".localized,
                 color: .seniorDanger,
                 action: {
                     if currentItemIndex < photoAnalyzer.foundDuplicates.count && !isProcessingSwipe {
@@ -350,7 +389,7 @@ struct PhotosView: View {
             // 保留按钮
             ActionButton(
                 icon: "heart.fill",
-                title: "保留",
+                title: "photos.keep".localized,
                 color: .seniorSuccess,
                 action: {
                     if currentItemIndex < photoAnalyzer.foundDuplicates.count && !isProcessingSwipe {
@@ -379,12 +418,12 @@ struct PhotosView: View {
                 .foregroundColor(.seniorSuccess)
             
             VStack(spacing: 16) {
-                Text("清理完成！")
+                Text("photos.cleaning_complete".localized)
                     .font(.seniorTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.seniorText)
                 
-                Text("您已成功清理了所有重复照片\n手机空间得到了优化")
+                Text("photos.cleaning_success".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
@@ -393,10 +432,10 @@ struct PhotosView: View {
             // 新增：本次清理统计（只统计被删除的）
             let deletedItems = photoAnalyzer.foundDuplicates.filter { !$0.isMarkedForKeeping }
             VStack(spacing: 8) {
-                Text("本次共处理\(deletedItems.count)张照片")
+                Text("photos.processed_count".localized(deletedItems.count))
                     .font(.seniorBody)
                     .foregroundColor(.seniorText)
-                Text("节省空间：\(ByteCountFormatter.string(fromByteCount: deletedItems.reduce(0) { $0 + $1.size }, countStyle: .file))")
+                Text("photos.space_saved".localized(ByteCountFormatter.string(fromByteCount: deletedItems.reduce(0) { $0 + $1.size }, countStyle: .file)))
                     .font(.seniorBody)
                     .foregroundColor(.seniorText)
             }
@@ -478,15 +517,35 @@ struct PhotosView: View {
     private func nextItem() {
         Logger.ui.debug("开始切换到下一个项目，当前索引: \(currentItemIndex)")
         
+        // 确保索引不会超出范围
+        guard currentItemIndex < photoAnalyzer.foundDuplicates.count else {
+            Logger.ui.debug("已到达最后一张照片，无需切换")
+            isProcessingSwipe = false
+            return
+        }
+        
         withAnimation(.easeInOut(duration: 0.3)) {
             currentItemIndex += 1
         }
+        
+        Logger.ui.debug("索引已更新为: \(currentItemIndex)")
         
         // 延迟重置滑动保护状态，确保动画完成
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             isProcessingSwipe = false
             Logger.ui.debug("滑动保护状态已重置，当前索引: \(currentItemIndex)")
         }
+    }
+    
+    private func showPhotoDetails() {
+        guard currentItemIndex < photoAnalyzer.foundDuplicates.count else { return }
+        let item = photoAnalyzer.foundDuplicates[currentItemIndex]
+        
+        let details = photoAnalyzer.getPhotoDetails(for: item)
+        
+        photoDetailsText = details
+        showingPhotoDetails = true
+        Logger.ui.debug("显示照片详情: \(item.fileName)")
     }
 }
 
@@ -525,7 +584,7 @@ struct SwipeablePhotoCard: View {
                                     .scaleEffect(1.5)
                                     .padding(.bottom, 8)
                                 
-                                Text("加载中...")
+                                Text("photos.loading".localized)
                                     .font(.seniorCaption)
                                     .foregroundColor(.white)
                             }
@@ -550,7 +609,7 @@ struct SwipeablePhotoCard: View {
                 .foregroundColor(.seniorSecondary)
                 
                 if item.isDuplicate {
-                    Text("相似度: \(Int(item.similarityScore * 100))%")
+                    Text("photos.similarity".localized(Int(item.similarityScore * 100)))
                         .font(.seniorCaption)
                         .fontWeight(.semibold)
                         .foregroundColor(.orange)
@@ -592,8 +651,15 @@ struct SwipeablePhotoCard: View {
         .onAppear {
             resetCardState()
             loadPhotoImage()
+            Logger.ui.debug("卡片已显示: \(item.fileName), ID: \(cardID)")
         }
         .id(cardID) // 确保每张卡片有唯一标识
+        .onChange(of: item.id) { _ in
+            // 当item.id改变时，重置卡片状态
+            resetCardState()
+            loadPhotoImage()
+            Logger.ui.debug("卡片内容已更新: \(item.fileName)")
+        }
     }
     
     private func resetCardState() {
@@ -641,7 +707,7 @@ struct SwipeablePhotoCard: View {
                             Image(systemName: "trash.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.seniorDanger)
-                            Text("删除")
+                            Text("photos.delete".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
                                 .foregroundColor(.seniorDanger)
@@ -659,7 +725,7 @@ struct SwipeablePhotoCard: View {
                             Image(systemName: "heart.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.seniorSuccess)
-                            Text("保留")
+                            Text("photos.keep".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
                                 .foregroundColor(.seniorSuccess)
@@ -819,9 +885,9 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             VStack {
-                Text("设置页面")
+                Text("photos.settings".localized)
                     .font(.seniorTitle)
-                Text("敬请期待...")
+                Text("photos.coming_soon".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
             }

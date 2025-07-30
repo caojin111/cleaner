@@ -18,12 +18,12 @@ struct AudioView: View {
                     .foregroundColor(.seniorSecondary)
                 
                 VStack(spacing: 16) {
-                    Text("音频清理")
+                    Text("audio.title".localized)
                         .font(.seniorTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.seniorText)
                     
-                    Text("即将推出\n敬请期待...")
+                    Text("audio.coming_soon".localized)
                         .font(.seniorBody)
                         .foregroundColor(.seniorSecondary)
                         .multilineTextAlignment(.center)
@@ -31,7 +31,7 @@ struct AudioView: View {
                 
                 Spacer()
             }
-            .navigationTitle("音频清理")
+            .navigationTitle("audio.title".localized)
             .navigationBarTitleDisplayMode(.large)
         }
     }

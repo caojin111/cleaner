@@ -18,12 +18,12 @@ struct FilesView: View {
                     .foregroundColor(.seniorSecondary)
                 
                 VStack(spacing: 16) {
-                    Text("文件清理")
+                    Text("files.title".localized)
                         .font(.seniorTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.seniorText)
                     
-                    Text("即将推出\n敬请期待...")
+                    Text("files.coming_soon".localized)
                         .font(.seniorBody)
                         .foregroundColor(.seniorSecondary)
                         .multilineTextAlignment(.center)
@@ -31,7 +31,7 @@ struct FilesView: View {
                 
                 Spacer()
             }
-            .navigationTitle("文件清理")
+            .navigationTitle("files.title".localized)
             .navigationBarTitleDisplayMode(.large)
         }
     }

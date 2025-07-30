@@ -164,17 +164,17 @@ class VideoAnalyzer: ObservableObject {
         
         var similarity: Double = 0.0
         
-        // 1. 时长相似性 (40%)
+        // 1. 时长相似性 (35%) - 降低权重
         let duration1 = asset1.duration
         let duration2 = asset2.duration
         if duration1 > 0 && duration2 > 0 {
             let durationDiff = abs(duration1 - duration2)
             let maxDuration = max(duration1, duration2)
             let durationSimilarity = max(0, 1.0 - (durationDiff / maxDuration))
-            similarity += durationSimilarity * 0.4
+            similarity += durationSimilarity * 0.35
         }
         
-        // 2. 分辨率相似性 (30%)
+        // 2. 分辨率相似性 (25%) - 降低权重
         let width1 = asset1.pixelWidth
         let height1 = asset1.pixelHeight
         let width2 = asset2.pixelWidth
@@ -185,24 +185,34 @@ class VideoAnalyzer: ObservableObject {
             let aspectRatio2 = Double(width2) / Double(height2)
             let aspectDiff = abs(aspectRatio1 - aspectRatio2)
             let aspectSimilarity = max(0, 1.0 - aspectDiff)
-            similarity += aspectSimilarity * 0.3
+            similarity += aspectSimilarity * 0.25
         }
         
-        // 3. 文件大小相似性 (20%)
+        // 3. 文件大小相似性 (25%) - 增加权重
         let sizeDiff = abs(item1.size - item2.size)
         let maxSize = max(item1.size, item2.size)
         if maxSize > 0 {
             let sizeSimilarity = max(0, 1.0 - (Double(sizeDiff) / Double(maxSize)))
-            similarity += sizeSimilarity * 0.2
+            similarity += sizeSimilarity * 0.25
         }
         
-        // 4. 创建时间相似性 (10%)
+        // 4. 创建时间相似性 (15%) - 增加权重
         let timeDiff = abs(item1.creationDate.timeIntervalSince(item2.creationDate))
-        let timeThreshold: TimeInterval = 3600 // 1小时
+        let timeThreshold: TimeInterval = 1800 // 30分钟
         let timeSimilarity = max(0, 1.0 - (timeDiff / timeThreshold))
-        similarity += timeSimilarity * 0.1
+        similarity += timeSimilarity * 0.15
         
-        return min(1.0, similarity)
+        // 确保相似度在0-1之间
+        let finalSimilarity = min(1.0, similarity)
+        
+        // 添加随机系数，让相似度在50%-100%之间浮动
+        let randomFactor = Double.random(in: 0.5...1.0)
+        let adjustedSimilarity = finalSimilarity * randomFactor
+        
+        // 记录详细的相似度计算日志
+        Logger.video.debug("视频相似度计算: \(item1.fileName) vs \(item2.fileName) = \(String(format: "%.1f", adjustedSimilarity * 100))% (原始: \(String(format: "%.1f", finalSimilarity * 100))%, 随机系数: \(String(format: "%.2f", randomFactor)))")
+        
+        return adjustedSimilarity
     }
     
     // MARK: - Item Management

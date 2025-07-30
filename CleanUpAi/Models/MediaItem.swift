@@ -11,7 +11,7 @@ import UniformTypeIdentifiers
 
 // MARK: - Media Item Model
 struct MediaItem: Identifiable, Hashable {
-    let id = UUID()
+    let id: UUID
     let asset: PHAsset?
     let fileURL: URL?
     let contentType: UTType?
@@ -54,10 +54,29 @@ struct MediaItem: Identifiable, Hashable {
     
     // 从PHAsset创建（照片/视频）
     init(asset: PHAsset, isDuplicate: Bool = false, similarityScore: Double = 0.0) {
+        self.id = UUID() // 确保id在初始化时生成
         self.asset = asset
         self.fileURL = nil
         self.contentType = nil
-        self.size = Int64(asset.pixelWidth * asset.pixelHeight * 4) // 估算大小
+        
+        // 使用更合理的文件大小估算
+        // 对于照片：假设JPEG压缩，每个像素约2-4字节
+        // 对于视频：基于分辨率和时长估算
+        var estimatedSize: Int64
+        if asset.mediaType == .video {
+            // 视频大小估算：分辨率 × 时长 × 比特率系数
+            let duration = asset.duration
+            let pixels = asset.pixelWidth * asset.pixelHeight
+            let bitrateFactor = 0.1 // 假设平均比特率约为分辨率的10%
+            estimatedSize = Int64(Double(pixels) * duration * bitrateFactor)
+        } else {
+            // 照片大小估算：基于分辨率和压缩率
+            let pixels = asset.pixelWidth * asset.pixelHeight
+            let compressionFactor = 0.3 // 假设JPEG压缩率约为30%
+            estimatedSize = Int64(Double(pixels) * 3.0 * compressionFactor) // 3字节/像素 × 压缩率
+        }
+        self.size = estimatedSize
+        
         self.creationDate = asset.creationDate ?? Date()
         self.fileName = "IMG_\(asset.localIdentifier.prefix(8))"
         self.mediaType = asset.mediaType == .video ? .video : .photo
@@ -67,6 +86,7 @@ struct MediaItem: Identifiable, Hashable {
     
     // 从文件URL创建（音频/文档）
     init(fileURL: URL, contentType: UTType, isDuplicate: Bool = false) {
+        self.id = UUID() // 确保id在初始化时生成
         self.asset = nil
         self.fileURL = fileURL
         self.contentType = contentType
@@ -90,6 +110,24 @@ struct MediaItem: Identifiable, Hashable {
         self.similarityScore = 0.0
     }
     
+    // 从保存的数据恢复（用于回收站）
+    init(id: UUID, fileName: String, size: Int64, creationDate: Date, mediaType: MediaType, 
+         isDuplicate: Bool, similarityScore: Double, asset: PHAsset? = nil, fileURL: URL? = nil, 
+         contentType: UTType? = nil, isInRecycleBin: Bool = false, deletedDate: Date? = nil) {
+        self.id = id
+        self.asset = asset
+        self.fileURL = fileURL
+        self.contentType = contentType
+        self.size = size
+        self.creationDate = creationDate
+        self.fileName = fileName
+        self.mediaType = mediaType
+        self.isDuplicate = isDuplicate
+        self.similarityScore = similarityScore
+        self.isInRecycleBin = isInRecycleBin
+        self.deletedDate = deletedDate
+    }
+    
     // MARK: - Computed Properties
     
     var formattedSize: String {
@@ -100,7 +138,7 @@ struct MediaItem: Identifiable, Hashable {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
         formatter.timeStyle = .none
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current
         return formatter.string(from: creationDate)
     }
     
@@ -154,7 +192,7 @@ struct StorageInfo {
 
 // MARK: - Subscription Plan Model
 struct SubscriptionPlan: Identifiable {
-    let id = UUID()
+    let id: UUID
     let title: String
     let price: String
     let originalPrice: String? // 原价（用于显示折扣）
@@ -164,36 +202,45 @@ struct SubscriptionPlan: Identifiable {
     let productIdentifier: String
     let trialDays: Int?
     
-    static let plans: [SubscriptionPlan] = [
-        SubscriptionPlan(
-            title: "年度订阅",
-            price: Constants.Subscription.yearlyPrice,
-            originalPrice: Constants.Subscription.yearlyOriginalPrice,
-            duration: "年",
-            features: ["无限制清理重复文件", "无限制文件分析", "优先客户支持", "高级清理算法"],
-            isRecommended: true,
-            productIdentifier: "com.cleanupai.yearly",
-            trialDays: 7
-        ),
-        SubscriptionPlan(
-            title: "月度订阅",
-            price: Constants.Subscription.monthlyPrice,
-            originalPrice: nil,
-            duration: "月",
-            features: ["无限制清理重复文件", "无限制文件分析", "基础客户支持"],
-            isRecommended: false,
-            productIdentifier: "com.cleanupai.monthly",
-            trialDays: nil
-        ),
-        SubscriptionPlan(
-            title: "周度订阅",
-            price: Constants.Subscription.weeklyPrice,
-            originalPrice: nil,
-            duration: "周",
-            features: ["无限制清理重复文件", "有限文件分析"],
-            isRecommended: false,
-            productIdentifier: "com.cleanupai.weekly",
-            trialDays: nil
-        )
-    ]
+    static func getPlans() -> [SubscriptionPlan] {
+        return [
+            SubscriptionPlan(
+                id: UUID(),
+                title: "paywall.plan.yearly".localized,
+                price: "$29.99", // 默认价格，会在UI层更新
+                originalPrice: nil, // 可以根据需要设置原价
+                duration: "paywall.plan.yearly_unit".localized,
+                features: ["无限制清理重复文件", "无限制文件分析", "优先客户支持", "高级清理算法"],
+                isRecommended: true,
+                productIdentifier: "yearly_29.99",
+                trialDays: 7
+            ),
+            SubscriptionPlan(
+                id: UUID(),
+                title: "paywall.plan.monthly".localized,
+                price: "$9.99", // 默认价格，会在UI层更新
+                originalPrice: nil,
+                duration: "paywall.plan.monthly_unit".localized,
+                features: ["无限制清理重复文件", "无限制文件分析", "基础客户支持"],
+                isRecommended: false,
+                productIdentifier: "monthly_9.99",
+                trialDays: nil
+            ),
+            SubscriptionPlan(
+                id: UUID(),
+                title: "paywall.plan.weekly".localized,
+                price: "$2.99", // 默认价格，会在UI层更新
+                originalPrice: nil,
+                duration: "paywall.plan.weekly_unit".localized,
+                features: ["无限制清理重复文件", "有限文件分析"],
+                isRecommended: false,
+                productIdentifier: "weekly_2.99",
+                trialDays: nil
+            )
+        ]
+    }
+    
+    static var plans: [SubscriptionPlan] {
+        return getPlans()
+    }
 } 

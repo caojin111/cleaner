@@ -100,6 +100,22 @@ struct VideosView: View {
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView()
         }
+        // 评分弹窗
+        .overlay(
+            Group {
+                if userSettings.shouldShowRating {
+                    RatingView(isPresented: $userSettings.shouldShowRating)
+                }
+            }
+        )
+        // 感谢弹窗
+        .alert("rate_us.thank_you.title".localized, isPresented: $userSettings.shouldShowThankYou) {
+            Button("rate_us.thank_you.ok".localized) {
+                userSettings.markThankYouShown()
+            }
+        } message: {
+            Text("rate_us.thank_you.subtitle".localized)
+        }
         .onChange(of: showPaywall) { newValue in
             if !newValue {
                 isProcessingSwipe = false // Paywall关闭时重置滑动状态
@@ -122,12 +138,12 @@ struct VideosView: View {
                     .frame(width: 200)
                     .accentColor(.seniorPrimary)
                 
-                Text("正在分析视频...")
+                Text("videos.analyzing".localized)
                     .font(.seniorTitle)
                     .fontWeight(.semibold)
                     .foregroundColor(.seniorText)
                 
-                Text("已处理 \(Int(videoAnalyzer.analysisProgress * 100))%")
+                Text("videos.progress".localized(Int(videoAnalyzer.analysisProgress * 100)))
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
             }
@@ -151,18 +167,18 @@ struct VideosView: View {
                 .foregroundColor(.seniorSecondary)
             
             VStack(spacing: 16) {
-                Text("没有发现重复视频")
+                Text("videos.no_duplicates".localized)
                     .font(.seniorTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.seniorText)
                 
-                Text("您的视频库看起来很整洁！")
+                Text("videos.no_duplicates_subtitle".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
             }
             
-            Button("重新分析") {
+            Button("videos.reanalyze".localized) {
                 Task {
                     await videoAnalyzer.startAnalysis()
                 }
@@ -206,14 +222,14 @@ struct VideosView: View {
         VStack(spacing: 8) {
             HStack(spacing: 15) {
                 CompactVideoStatCard(
-                    title: "重复视频",
+                    title: "videos.duplicate_videos".localized,
                     value: "\(videoAnalyzer.foundDuplicates.count)",
                     icon: "video.badge.plus",
                     color: .purple
                 )
                 
                 CompactVideoStatCard(
-                    title: "可节省",
+                    title: "videos.space_savings".localized,
                     value: ByteCountFormatter.string(fromByteCount: videoAnalyzer.estimatedSpaceSavings(), countStyle: .file),
                     icon: "externaldrive.badge.minus",
                     color: .green
@@ -228,7 +244,7 @@ struct VideosView: View {
                         .font(.caption)
                         .foregroundColor(userSettings.isSubscribed ? .seniorPrimary : .seniorSecondary)
                     
-                    Text(userSettings.isSubscribed ? "无限滑动" : "剩余 \(userSettings.remainingSwipes)/10")
+                    Text(userSettings.isSubscribed ? "videos.unlimited_swipes".localized : "videos.remaining_swipes".localized(userSettings.remainingSwipes))
                         .font(.caption)
                         .fontWeight(.medium)
                         .foregroundColor(userSettings.isSubscribed ? .seniorPrimary : .seniorSecondary)
@@ -307,6 +323,7 @@ struct VideosView: View {
                         }
                     }
                 )
+                .id(currentItemIndex) // 用id强制刷新卡片状态
                 .allowsHitTesting(!isProcessingSwipe) // 处理期间禁用滑动
                 .onAppear {
                     Logger.video.debug("当前视频卡片显示: \(duplicates[currentItemIndex].fileName)")
@@ -327,7 +344,7 @@ struct VideosView: View {
             // 删除按钮
             ActionButton(
                 icon: "trash.fill",
-                title: "删除",
+                title: "videos.delete".localized,
                 color: .seniorDanger,
                 action: {
                     let duplicates = videoAnalyzer.foundDuplicates
@@ -342,7 +359,7 @@ struct VideosView: View {
             // 保留按钮
             ActionButton(
                 icon: "heart.fill",
-                title: "保留",
+                title: "videos.keep".localized,
                 color: .seniorSuccess,
                 action: {
                     let duplicates = videoAnalyzer.foundDuplicates
@@ -372,12 +389,12 @@ struct VideosView: View {
                 .foregroundColor(.seniorSuccess)
             
             VStack(spacing: 16) {
-                Text("视频清理完成！")
+                Text("videos.cleaning_complete".localized)
                     .font(.seniorTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.seniorText)
                 
-                Text("您已成功清理了所有重复视频\n手机空间得到了优化")
+                Text("videos.cleaning_success".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
@@ -386,15 +403,15 @@ struct VideosView: View {
             // 新增：本次清理统计（只统计被删除的）
             let deletedItems = videoAnalyzer.foundDuplicates.filter { !$0.isMarkedForKeeping }
             VStack(spacing: 8) {
-                Text("本次共处理\(deletedItems.count)个视频")
+                Text("videos.processed_count".localized(deletedItems.count))
                     .font(.seniorBody)
                     .foregroundColor(.seniorText)
-                Text("节省空间：\(ByteCountFormatter.string(fromByteCount: deletedItems.reduce(0) { $0 + $1.size }, countStyle: .file))")
+                Text("videos.space_saved".localized(ByteCountFormatter.string(fromByteCount: deletedItems.reduce(0) { $0 + $1.size }, countStyle: .file)))
                     .font(.seniorBody)
                     .foregroundColor(.seniorText)
             }
             
-            Button("查看回收站") {
+            Button("videos.view_recycle_bin".localized) {
                 // TODO: 导航到回收站
                 Logger.logPageNavigation(from: "VideosView", to: "RecycleBinView")
             }
@@ -471,9 +488,9 @@ struct VideosView: View {
     private func nextItem() {
         Logger.video.debug("开始切换到下一个视频，当前索引: \(currentItemIndex)")
         
-        guard currentItemIndex < videoAnalyzer.foundDuplicates.count else {
+        if currentItemIndex >= videoAnalyzer.foundDuplicates.count {
             Logger.video.warning("尝试切换到无效的视频索引: \(currentItemIndex)")
-            isProcessingSwipe = false
+            isProcessingSwipe = false // 保证状态重置
             return
         }
         

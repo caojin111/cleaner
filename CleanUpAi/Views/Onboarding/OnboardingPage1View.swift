@@ -19,21 +19,21 @@ struct OnboardingPage1View: View {
             // LOGO/图标
             ZStack {
                 Circle()
-                    .fill(Color(red: 0.66, green: 1, blue: 0.81).opacity(0.18))
+                    .fill(Color.seniorPrimary.opacity(0.18))
                     .frame(width: 180, height: 180)
                     Image(systemName: "arrow.up.trash")
                         .font(.system(size: 60, weight: .light))
-                    .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
+                    .foregroundColor(Color.seniorPrimary)
                 }
             // 文案
             VStack(spacing: 18) {
-                Text(Constants.Onboarding.page1Title)
+                Text("onboarding.page1.title".localized)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                Text(Constants.Onboarding.page1Subtitle)
+                Text("onboarding.page1.subtitle".localized)
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.seniorText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             }
@@ -45,19 +45,19 @@ struct OnboardingPage1View: View {
                 }
                 Logger.logPageNavigation(from: "Onboarding-1", to: "Onboarding-2")
             }) {
-                    Text("继续")
+                    Text("onboarding.page1.continue".localized)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                        LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
+                        Color.seniorPrimary
                 )
                     .cornerRadius(28)
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 36)
         }
-        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .onAppear {
             animateIcon = true
         }

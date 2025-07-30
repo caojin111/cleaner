@@ -32,7 +32,7 @@ struct SplashView: View {
                 HStack(spacing: 8) {
                     ForEach(0..<5) { i in
                         Circle()
-                            .fill(LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .top, endPoint: .bottom))
+                            .fill(Color.seniorPrimary)
                             .frame(width: dotPulse && i == 2 ? 18 : 10, height: dotPulse && i == 2 ? 18 : 10)
                             .opacity(dotPulse && i == 2 ? 1.0 : 0.7)
                             .animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: dotPulse)
@@ -42,10 +42,10 @@ struct SplashView: View {
                 Spacer()
                 // 底部开发者和版本号
                 VStack(spacing: 6) {
-                    Text("Made with LazyCat")
+                    Text("app.developer".localized)
                         .font(.system(size: 20, weight: .medium, design: .rounded))
-                        .foregroundColor(Color(red: 0.2, green: 0.7, blue: 0.4))
-                    Text("v1.0.0")
+                        .foregroundColor(Color.seniorPrimary)
+                    Text("app.version".localized)
                         .font(.system(size: 16, weight: .regular, design: .rounded))
                         .foregroundColor(Color.gray)
                 }

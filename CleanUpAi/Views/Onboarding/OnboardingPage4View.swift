@@ -15,81 +15,95 @@ struct OnboardingPage4View: View {
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
     @State private var photoCount: Int = 0
     @State private var isAnalyzing = false
-    @State private var animateNumbers = false
+    @State private var pageVisible = false
     
     var body: some View {
         VStack(spacing: 36) {
             Spacer()
-            // 统计动画
+            // 统计展示（简化的动画）
             ZStack {
                 Circle()
-                    .fill(Color(red: 0.66, green: 1, blue: 0.81).opacity(0.18))
+                    .fill(Color.seniorPrimary.opacity(0.18))
                     .frame(width: 180, height: 180)
                 VStack(spacing: 16) {
-                    Text("\(animateNumbers ? formatNumber(photoCount) : formatNumber(0))")
+                    Text(formatNumber(photoCount))
                         .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
-                    Text("张照片")
+                        .foregroundColor(Color.seniorPrimary)
+                    Text("onboarding.page4.photos_count".localized)
                         .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundColor(.black)
-                    }
+                        .foregroundColor(.seniorText)
                 }
+            }
+            .opacity(pageVisible ? 1.0 : 0.0)
+            .offset(y: pageVisible ? 0 : 30)
+            
             // 文案
             VStack(spacing: 18) {
-                Text("您有 \(formatNumber(photoCount)) 张照片待清理")
+                Text(String(format: "onboarding.page4.title".localized, photoCount))
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                Text(Constants.Onboarding.page4Subtitle)
+                Text("onboarding.page4.subtitle".localized)
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.seniorText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
+                
                 if photoCount > 0 {
                     VStack(spacing: 12) {
                         StatRow(
                             icon: "🟢",
-                            title: "预计重复照片",
+                            title: "onboarding.page4.estimated_duplicates".localized,
                             value: calculateEstimatedDuplicates(),
                             color: .orange
                         )
                         StatRow(
                             icon: "🟢",
-                            title: "预计节省空间",
+                            title: "onboarding.page4.estimated_saving".localized,
                             value: calculateEstimatedSpaceSavings(),
                             color: .green
                         )
                         StatRow(
                             icon: "🟢",
-                            title: "性能提升",
-                            value: "显著改善",
+                            title: "onboarding.page4.performance_boost".localized,
+                            value: "onboarding.page4.significant_improvement".localized,
                             color: .blue
                         )
                     }
                     .padding(.horizontal, 24)
                 }
             }
+            .opacity(pageVisible ? 1.0 : 0.0)
+            .offset(y: pageVisible ? 0 : 30)
+            
             Spacer()
+            
             // 按钮
             Button(action: {
                 Logger.logPageNavigation(from: "Onboarding-4", to: "Paywall")
                 showPaywall = true
             }) {
-                    Text("开始清理")
+                Text("onboarding.page4.start_cleaning".localized)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                        LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
-                        )
-                    .cornerRadius(28)
+                    Color.seniorPrimary
+                )
+                .cornerRadius(28)
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 36)
+            .opacity(pageVisible ? 1.0 : 0.0)
+            .offset(y: pageVisible ? 0 : 30)
         }
-        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .onAppear {
             startPhotoAnalysis()
+            // 简单的页面出现动画
+            withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
+                pageVisible = true
+            }
         }
     }
     
@@ -103,18 +117,13 @@ struct OnboardingPage4View: View {
                 photoCount = count
                 isAnalyzing = false
                 
-                // 数字动画
-                withAnimation(.easeInOut(duration: 1.0)) {
-                    animateNumbers = true
-                }
-                
                 Logger.analytics.info("用户照片总数: \(count)")
             }
         }
     }
     
     private func calculateEstimatedSpaceSavings() -> String {
-        guard photoCount > 0 else { return "计算中..." }
+        guard photoCount > 0 else { return "onboarding.page4.calculating".localized }
         
         // 基于合理假设的计算：
         // 1. 假设10-15%的照片是重复或相似的
@@ -151,7 +160,7 @@ struct OnboardingPage4View: View {
     }
     
     private func calculateEstimatedDuplicates() -> String {
-        guard photoCount > 0 else { return "计算中..." }
+        guard photoCount > 0 else { return "onboarding.page4.calculating".localized }
         
         let duplicateRate: Double
         
@@ -166,7 +175,7 @@ struct OnboardingPage4View: View {
         }
         
         let estimatedDuplicates = Int(Double(photoCount) * duplicateRate)
-        return "\(formatNumber(estimatedDuplicates))张"
+        return "\(formatNumber(estimatedDuplicates))\("onboarding.page4.photos_unit".localized)"
     }
     
     // MARK: - Helper Methods
@@ -188,20 +197,20 @@ struct OnboardingPage4View: View {
         let numberFormatter = NumberFormatter()
         numberFormatter.numberStyle = .decimal
         numberFormatter.maximumFractionDigits = 1
-        numberFormatter.locale = Locale(identifier: "zh_CN")
+        numberFormatter.locale = Locale.current
         
         if gb >= 1.0 {
             let formattedNumber = numberFormatter.string(from: NSNumber(value: gb)) ?? String(format: "%.1f", gb)
-            return "\(formattedNumber) GB"
+            return "\(formattedNumber) \("onboarding.page4.gb_unit".localized)"
         } else if mb >= 1.0 {
             let formattedNumber = numberFormatter.string(from: NSNumber(value: mb)) ?? String(format: "%.1f", mb)
-            return "\(formattedNumber) MB"
+            return "\(formattedNumber) \("onboarding.page4.mb_unit".localized)"
         } else if kb >= 1.0 {
             let formattedNumber = numberFormatter.string(from: NSNumber(value: kb)) ?? String(format: "%.1f", kb)
-            return "\(formattedNumber) KB"
+            return "\(formattedNumber) \("onboarding.page4.kb_unit".localized)"
         } else {
             let formattedNumber = numberFormatter.string(from: NSNumber(value: bytes)) ?? "\(bytes)"
-            return "\(formattedNumber) 字节"
+            return "\(formattedNumber) \("onboarding.page4.bytes_unit".localized)"
         }
     }
     
@@ -209,7 +218,7 @@ struct OnboardingPage4View: View {
     private func formatNumber(_ number: Int) -> String {
         let formatter = NumberFormatter()
         formatter.numberStyle = .decimal
-        formatter.locale = Locale(identifier: "zh_CN")
+        formatter.locale = Locale.current
         return formatter.string(from: NSNumber(value: number)) ?? "\(number)"
     }
 }

@@ -8,10 +8,21 @@
 import SwiftUI
 import OSLog
 import WebKit
+import UserNotifications
 
 struct MoreView: View {
     @State private var showingPaywall = false
     @State private var showingPrivacyPolicy = false
+    @State private var showingRestoreAlert = false
+    @State private var restoreResultMessage = ""
+    @State private var currentPlanType: String = "Yearly Plan"
+    @State private var isNotificationEnabled = false
+    @State private var showingNotificationAlert = false
+    @State private var notificationAlertMessage = ""
+    @State private var isInitialized = false // 防止初始化时的onChange触发
+    @StateObject private var storeManager = StoreKitManager.shared
+    @StateObject private var userSettings = UserSettingsManager.shared
+    @StateObject private var notificationManager = NotificationManager.shared
     
     var body: some View {
         NavigationView {
@@ -33,7 +44,7 @@ struct MoreView: View {
                     .padding(.top, 0)
                 }
             }
-            .navigationTitle("更多")
+            .navigationTitle("more.title".localized)
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.light, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -45,8 +56,24 @@ struct MoreView: View {
         .sheet(isPresented: $showingPrivacyPolicy) {
             PrivacyPolicyView()
         }
+        .alert("more.restore_result".localized, isPresented: $showingRestoreAlert) {
+            Button("more.ok".localized) { }
+        } message: {
+            Text(restoreResultMessage)
+        }
+        .alert("more.notification_result".localized, isPresented: $showingNotificationAlert) {
+            Button("more.ok".localized) { }
+        } message: {
+            Text(notificationAlertMessage)
+        }
         .onAppear {
             Logger.ui.debug("MoreView: 初始化更多视图")
+            if userSettings.isSubscribed {
+                loadCurrentPlanType()
+            }
+            checkNotificationStatus()
+            
+
         }
         .onChange(of: showingPrivacyPolicy) { newValue in
             if newValue {
@@ -74,25 +101,40 @@ struct MoreView: View {
                     .font(.system(size: 26, weight: .bold))
                 }
             VStack(alignment: .leading, spacing: 4) {
-                Text("PRO 优惠")
+                Text("more.pro_card.title".localized)
                     .font(.title2)
                     .fontWeight(.bold)
                     .foregroundColor(.white)
-                Text("高级功能")
+                Text("more.pro_card.subtitle".localized)
                     .font(.body)
                     .foregroundColor(.gray)
             }
             Spacer()
-            Button(action: { showingPaywall = true }) {
-                Text("立即获取")
+            
+            if userSettings.isSubscribed {
+                // 已订阅状态：显示当前plan类型
+                Text(getCurrentPlanType())
                     .font(.system(size: 17, weight: .semibold))
                     .foregroundColor(Color.white)
-                    .padding(.horizontal, 18)
+                    .padding(.horizontal, 10)
                     .padding(.vertical, 8)
                     .background(
                         Capsule()
-                            .fill(Color.blue)
+                            .fill(Color.green)
                     )
+            } else {
+                // 未订阅状态：显示Get Now按钮
+                Button(action: { showingPaywall = true }) {
+                    Text("more.pro_card.button".localized)
+                        .font(.system(size: 17, weight: .semibold))
+                        .foregroundColor(Color.white)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(
+                            Capsule()
+                                .fill(Color.blue)
+                        )
+                }
             }
         }
         .frame(maxWidth: .infinity)
@@ -112,26 +154,49 @@ struct MoreView: View {
     private var functionsSection: some View {
         VStack(spacing: 12) {
             MoreMenuItem(
-                icon: "info.circle.fill",
-                title: "Version",
-                color: .blue,
+                icon: "arrow.counterclockwise",
+                title: "more.menu.restore".localized,
+                subtitle: nil,
+                color: .orange,
                 action: {
-                    Logger.ui.debug("用户查看版本信息")
+                    handleRestore()
                 }
             )
             
             MoreMenuItem(
-                icon: "person.fill",
-                title: "Developer",
-                color: .purple,
+                icon: "star.fill",
+                title: "more.menu.rate_us".localized,
+                subtitle: nil,
+                color: .yellow,
                 action: {
-                    Logger.ui.debug("用户查看开发者信息")
+                    handleRateUs()
                 }
+            )
+            
+            MoreMenuItem(
+                icon: "envelope.fill",
+                title: "more.menu.contact_us".localized,
+                subtitle: nil,
+                color: .cyan,
+                action: {
+                    handleContactUs()
+                }
+            )
+            
+            // 每日清理提醒 - 开关样式
+            MoreMenuItemWithToggle(
+                icon: "bell.fill",
+                title: getDailyReminderTitle(),
+                subtitle: getDailyReminderSubtitle(),
+                color: .orange,
+                isOn: $isNotificationEnabled,
+                onToggle: handleDailyReminderToggle
             )
             
             MoreMenuItem(
                 icon: "shield.fill",
-                title: "Privacy Policy",
+                title: "more.menu.privacy_policy".localized,
+                subtitle: nil,
                 color: .green,
                 action: {
                     showingPrivacyPolicy = true
@@ -140,29 +205,22 @@ struct MoreView: View {
             )
             
             MoreMenuItem(
-                icon: "arrow.counterclockwise",
-                title: "Restore",
-                color: .orange,
+                icon: "person.fill",
+                title: "more.menu.developer".localized,
+                subtitle: "app.developer".localized,
+                color: .purple,
                 action: {
-                    handleRestore()
+                    Logger.ui.debug("用户查看开发者信息")
                 }
             )
             
             MoreMenuItem(
-                icon: "envelope.fill",
-                title: "Contact us",
-                color: .cyan,
+                icon: "info.circle.fill",
+                title: "more.menu.version".localized,
+                subtitle: "app.version".localized,
+                color: .blue,
                 action: {
-                    handleContactUs()
-                }
-            )
-            
-            MoreMenuItem(
-                icon: "star.fill",
-                title: "Rate us",
-                color: .yellow,
-                action: {
-                    handleRateUs()
+                    Logger.ui.debug("用户查看版本信息")
                 }
             )
         }
@@ -172,7 +230,30 @@ struct MoreView: View {
     
     private func handleRestore() {
         Logger.ui.info("用户执行恢复购买操作")
-        // TODO: 实现恢复购买逻辑
+        
+        Task {
+            do {
+                let hasValidSubscription = try await storeManager.restorePurchases()
+                
+                await MainActor.run {
+                    if hasValidSubscription {
+                        userSettings.isSubscribed = true
+                        restoreResultMessage = "more.restore_success".localized
+                        Logger.ui.info("恢复购买成功，找到有效订阅")
+                    } else {
+                        restoreResultMessage = "more.restore_no_subscription".localized
+                        Logger.ui.info("恢复购买完成，但未找到有效订阅")
+                    }
+                    showingRestoreAlert = true
+                }
+            } catch {
+                await MainActor.run {
+                    restoreResultMessage = "more.restore_failed".localized(error.localizedDescription)
+                    showingRestoreAlert = true
+                    Logger.ui.error("恢复购买失败: \(error.localizedDescription)")
+                }
+            }
+        }
     }
     
     private func handleContactUs() {
@@ -184,9 +265,126 @@ struct MoreView: View {
     
     private func handleRateUs() {
         Logger.ui.info("用户点击评分")
-        // TODO: 请将YOUR_APP_ID替换为实际App Store ID
-        if let url = URL(string: "https://apps.apple.com/app/idYOUR_APP_ID?action=write-review") {
+        if let url = URL(string: "https://apps.apple.com/app/id6748984268?action=write-review") {
             UIApplication.shared.open(url)
+        }
+    }
+    
+    // MARK: - Notification Methods
+    
+    private func checkNotificationStatus() {
+        Task {
+            let permissionStatus = await notificationManager.checkNotificationPermission()
+            let isScheduled = await notificationManager.isDailyReminderScheduled()
+            
+            await MainActor.run {
+                let newStatus = permissionStatus == .authorized && isScheduled
+                Logger.ui.info("通知状态检查完成: 权限=\(permissionStatus.rawValue), 已设置=\(isScheduled), 新状态=\(newStatus), 当前状态=\(isNotificationEnabled)")
+                
+                // 只有当状态真正改变时才更新，避免不必要的onChange触发
+                if isNotificationEnabled != newStatus {
+                    isNotificationEnabled = newStatus
+                    Logger.ui.debug("通知状态已更新: \(newStatus)")
+                }
+                
+                // 标记为已初始化
+                if !isInitialized {
+                    isInitialized = true
+                    Logger.ui.debug("MoreView通知状态初始化完成")
+                }
+            }
+        }
+    }
+    
+    private func handleDailyReminderToggle() {
+        // 只有在初始化完成后才处理切换事件
+        guard isInitialized else {
+            Logger.ui.debug("MoreView尚未初始化完成，忽略切换事件")
+            return
+        }
+        
+        // 获取切换前的状态，因为isNotificationEnabled已经被Toggle改变了
+        let wasEnabled = !isNotificationEnabled
+        Logger.ui.info("用户切换每日提醒设置，从 \(wasEnabled) 切换到 \(isNotificationEnabled)")
+        
+        Task {
+            if isNotificationEnabled {
+                // 用户想要开启提醒
+                Logger.ui.debug("尝试开启每日提醒")
+                let granted = await notificationManager.requestNotificationPermission()
+                
+                await MainActor.run {
+                    if granted {
+                        Task {
+                            await notificationManager.scheduleDailyCleanupReminder()
+                            await MainActor.run {
+                                isNotificationEnabled = true
+                                notificationAlertMessage = "more.notification_enabled".localized
+                                showingNotificationAlert = true
+                                Logger.ui.info("每日提醒已开启")
+                            }
+                        }
+                    } else {
+                        // 权限被拒绝，恢复开关状态
+                        isNotificationEnabled = false
+                        notificationAlertMessage = "more.notification_permission_denied".localized
+                        showingNotificationAlert = true
+                        Logger.ui.warning("通知权限被拒绝")
+                    }
+                }
+            } else {
+                // 用户想要关闭提醒
+                Logger.ui.debug("尝试关闭每日提醒")
+                await notificationManager.removeDailyCleanupReminder()
+                await MainActor.run {
+                    isNotificationEnabled = false
+                    notificationAlertMessage = "more.notification_disabled".localized
+                    showingNotificationAlert = true
+                    Logger.ui.info("每日提醒已关闭")
+                }
+            }
+        }
+    }
+    
+    // MARK: - Subscription Plan Helper
+    
+    private func getCurrentPlanType() -> String {
+        return currentPlanType
+    }
+    
+    // MARK: - Daily Reminder Helper
+    
+    private func getDailyReminderSubtitle() -> String {
+        let enabledText = "more.menu.daily_reminder.enabled".localized
+        let disabledText = "more.menu.daily_reminder.disabled".localized
+        
+        Logger.ui.debug("Daily reminder subtitle - enabled: '\(enabledText)', disabled: '\(disabledText)'")
+        
+        return isNotificationEnabled ? enabledText : disabledText
+    }
+    
+    private func getDailyReminderTitle() -> String {
+        let title = "more.menu.daily_reminder.title".localized
+        Logger.ui.debug("Daily reminder title: '\(title)'")
+        return title
+    }
+    
+    private func loadCurrentPlanType() {
+        Task {
+            if let planType = await storeManager.getCurrentSubscriptionPlan() {
+                await MainActor.run {
+                    switch planType {
+                    case "yearly":
+                        currentPlanType = "more.pro_card.yearly_plan".localized
+                    case "monthly":
+                        currentPlanType = "more.pro_card.monthly_plan".localized
+                                    case "weekly":
+                    currentPlanType = "more.pro_card.weekly_plan".localized
+                default:
+                    currentPlanType = "more.pro_card.yearly_plan".localized
+                    }
+                }
+            }
         }
     }
 }
@@ -196,6 +394,7 @@ struct MoreView: View {
 struct MoreMenuItem: View {
     let icon: String
     let title: String
+    let subtitle: String?
     let color: Color
     let action: () -> Void
     
@@ -211,13 +410,28 @@ struct MoreMenuItem: View {
                         RoundedRectangle(cornerRadius: 12)
                             .fill(color)
                     )
-                // 文本信息
+                
+                // 文本信息 - 增加最小宽度确保文本完整显示
+                VStack(alignment: .leading, spacing: 2) {
                     Text(title)
                         .font(.seniorBody)
                         .fontWeight(.semibold)
                         .foregroundColor(.seniorText)
                         .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    
+                    if let subtitle = subtitle {
+                        Text(subtitle)
+                            .font(.seniorCaption)
+                            .foregroundColor(.seniorSecondary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                    }
+                }
+                .frame(minWidth: 140, maxWidth: .infinity, alignment: .leading)
+                
                 Spacer()
+                
                 // 箭头
                 Image(systemName: "chevron.right")
                     .font(.title3)
@@ -235,6 +449,65 @@ struct MoreMenuItem: View {
     }
 }
 
+// MARK: - More Menu Item with Toggle
+
+struct MoreMenuItemWithToggle: View {
+    let icon: String
+    let title: String
+    let subtitle: String?
+    let color: Color
+    @Binding var isOn: Bool
+    let onToggle: () -> Void
+    
+    var body: some View {
+        HStack(spacing: 16) {
+            // 图标
+            Image(systemName: icon)
+                .font(.title2)
+                .foregroundColor(.white)
+                .frame(width: 44, height: 44)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(color)
+                )
+            
+            // 文本信息 - 增加最小宽度确保文本完整显示
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.seniorBody)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.seniorText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                
+                if let subtitle = subtitle {
+                    Text(subtitle)
+                        .font(.seniorCaption)
+                        .foregroundColor(.seniorSecondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                }
+            }
+            .frame(minWidth: 140, maxWidth: .infinity, alignment: .leading)
+            
+            // 开关 - 固定宽度
+            Toggle("", isOn: $isOn)
+                .toggleStyle(SwitchToggleStyle(tint: color))
+                .frame(width: 51) // 标准开关宽度
+                .onChange(of: isOn) { _ in
+                    onToggle()
+                }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color.white)
+                .shadow(color: .gray.opacity(0.1), radius: 4, x: 0, y: 2)
+        )
+    }
+}
+
 // MARK: - Support Views
 
 struct SupportUsView: View {
@@ -248,12 +521,12 @@ struct SupportUsView: View {
                     .foregroundColor(.pink)
                 
                 VStack(spacing: 16) {
-                    Text("感谢您的支持")
-                        .font(.seniorTitle)
-                        .fontWeight(.bold)
-                        .foregroundColor(.seniorText)
-                    
-                    Text("您的支持是我们继续改进的动力\n我们会持续为您提供更好的服务")
+                                    Text("more.support.title".localized)
+                    .font(.seniorTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.seniorText)
+                
+                Text("more.support.subtitle".localized)
                         .font(.seniorBody)
                         .foregroundColor(.seniorSecondary)
                         .multilineTextAlignment(.center)
@@ -266,7 +539,7 @@ struct SupportUsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("more.contact.done".localized) {
                         dismiss()
                     }
                 }
@@ -292,7 +565,7 @@ struct PrivacyPolicyView: View {
                     VStack(spacing: 20) {
                         ProgressView()
                             .scaleEffect(1.5)
-                        Text("加载隐私政策...")
+                        Text("more.privacy.loading".localized)
                             .font(.seniorBody)
                             .foregroundColor(.seniorSecondary)
                     }
@@ -302,7 +575,7 @@ struct PrivacyPolicyView: View {
                             .font(.system(size: 60))
                             .foregroundColor(.orange)
                         
-                        Text("加载失败")
+                        Text("more.privacy.load_failed".localized)
                             .font(.seniorTitle)
                             .fontWeight(.bold)
                             .foregroundColor(.seniorText)
@@ -341,7 +614,7 @@ struct PrivacyPolicyView: View {
             .toolbarBackground(Color.white, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("more.contact.done".localized) {
                         dismiss()
                     }
                     .foregroundColor(.black)
@@ -586,19 +859,19 @@ struct ContactUsView: View {
                     .foregroundColor(.cyan)
                 
                 VStack(spacing: 16) {
-                    Text("联系我们")
+                    Text("more.contact.title".localized)
                         .font(.seniorTitle)
                         .fontWeight(.bold)
                         .foregroundColor(.seniorText)
                     
-                    Text("如有任何问题或建议\n请通过以下方式联系我们")
+                    Text("more.contact.subtitle".localized)
                         .font(.seniorBody)
                         .foregroundColor(.seniorSecondary)
                         .multilineTextAlignment(.center)
                 }
                 
                 VStack(spacing: 12) {
-                    Button("发送邮件") {
+                    Button("more.contact.send_email".localized) {
                         if let url = URL(string: "mailto:support@cleanupai.com") {
                             UIApplication.shared.open(url)
                         }
@@ -621,7 +894,7 @@ struct ContactUsView: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("完成") {
+                    Button("more.contact.done".localized) {
                         dismiss()
                     }
                 }

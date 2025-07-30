@@ -1,0 +1,174 @@
+{
+  "identifier" : "Configuration",
+  "nonRenewingSubscriptions" : [
+
+  ],
+  "products" : [
+
+  ],
+  "settings" : {
+    "_applicationInternalID" : "6748984268",
+    "_developerTeamID" : "Jin Cao",
+    "_failTransactionsEnabled" : false,
+    "_lastSynchronizedDate" : 1234567890.0,
+    "_locale" : "en_US",
+    "_storefront" : "USA",
+    "_storeKitErrors" : [
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Load Products"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Purchase"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Verification"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Store Sync"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Subscription Status"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "App Transaction"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Manage Subscriptions Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Refund Request Sheet"
+      },
+      {
+        "current" : null,
+        "enabled" : false,
+        "name" : "Offer Code Redeem Sheet"
+      }
+    ]
+  },
+  "subscriptionGroups" : [
+    {
+      "id" : "21482999",
+      "localizations" : [
+
+      ],
+      "name" : "CleanUp AI Subscriptions",
+      "subscriptions" : [
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "29.99",
+          "familyShareable" : false,
+          "groupNumber" : 1,
+          "internalID" : "1234567890",
+          "introductoryOffer" : {
+            "internalID" : "1234567890",
+            "numberOfPeriods" : 1,
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
+          "localizations" : [
+            {
+              "description" : "年度订阅，享受所有Pro功能",
+              "displayName" : "年度订阅",
+              "locale" : "zh_CN"
+            },
+            {
+              "description" : "Annual subscription with all Pro features",
+              "displayName" : "Annual Subscription",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "yearly_29.99",
+          "recurringSubscriptionPeriod" : "P1Y",
+          "referenceName" : "Yearly Subscription",
+          "subscriptionGroupID" : "21482999",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "9.99",
+          "familyShareable" : false,
+          "groupNumber" : 2,
+          "internalID" : "1234567891",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "月度订阅，享受所有Pro功能",
+              "displayName" : "月度订阅",
+              "locale" : "zh_CN"
+            },
+            {
+              "description" : "Monthly subscription with all Pro features",
+              "displayName" : "Monthly Subscription",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "monthly_9.99",
+          "recurringSubscriptionPeriod" : "P1M",
+          "referenceName" : "Monthly Subscription",
+          "subscriptionGroupID" : "21482999",
+          "type" : "RecurringSubscription"
+        },
+        {
+          "adHocOffers" : [
+
+          ],
+          "codeOffers" : [
+
+          ],
+          "displayPrice" : "2.99",
+          "familyShareable" : false,
+          "groupNumber" : 3,
+          "internalID" : "1234567892",
+          "introductoryOffer" : null,
+          "localizations" : [
+            {
+              "description" : "周度订阅，享受所有Pro功能",
+              "displayName" : "周度订阅",
+              "locale" : "zh_CN"
+            },
+            {
+              "description" : "Weekly subscription with all Pro features",
+              "displayName" : "Weekly Subscription",
+              "locale" : "en_US"
+            }
+          ],
+          "productID" : "weekly_2.99",
+          "recurringSubscriptionPeriod" : "P1W",
+          "referenceName" : "Weekly Subscription",
+          "subscriptionGroupID" : "21482999",
+          "type" : "RecurringSubscription"
+        }
+      ]
+    }
+  ],
+  "version" : {
+    "major" : 3,
+    "minor" : 0
+  }
+} 

@@ -22,7 +22,7 @@ struct OnboardingPage3View: View {
             // 图标/动画
             ZStack {
                 Circle()
-                    .fill(Color(red: 0.66, green: 1, blue: 0.81).opacity(0.18))
+                    .fill(Color.seniorPrimary.opacity(0.18))
                     .frame(width: 180, height: 180)
                 // 保持原有图片动画
                 ZStack {
@@ -41,20 +41,20 @@ struct OnboardingPage3View: View {
             }
             // 文案
             VStack(spacing: 18) {
-                Text(Constants.Onboarding.page3Title)
+                Text("onboarding.page3.title".localized)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                Text(Constants.Onboarding.page3Subtitle)
+                Text("onboarding.page3.subtitle".localized)
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.seniorText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
                 VStack(alignment: .leading, spacing: 12) {
-                    FeatureItem(icon: "🟢", text: "智能识别相似照片")
-                    FeatureItem(icon: "🟢", text: "分析存储空间占用")
-                    FeatureItem(icon: "🟢", text: "找出最值得保留的照片")
-                    FeatureItem(icon: "🟢", text: "按时间和类型整理")
+                    FeatureItem(icon: "🟢", text: "onboarding.page3.smart_recognition".localized)
+                    FeatureItem(icon: "🟢", text: "onboarding.page3.analyze_storage".localized)
+                    FeatureItem(icon: "🟢", text: "onboarding.page3.find_best".localized)
+                    FeatureItem(icon: "🟢", text: "onboarding.page3.organize_by_time_type".localized)
                 }
                 .padding(.horizontal, 24)
             }
@@ -64,21 +64,21 @@ struct OnboardingPage3View: View {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     currentPage += 1
                 }
-                Logger.logPageNavigation(from: "Onboarding-3", to: "Onboarding-4")
+                Logger.logPageNavigation(from: "Onboarding-3", to: "AI-Analysis")
             }) {
-                    Text("查看我的照片")
+                    Text("onboarding.page3.view_photos".localized)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(.black)
+                    .foregroundColor(.white)
                     .frame(maxWidth: .infinity, minHeight: 56)
                 .background(
-                        LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
+                        Color.seniorPrimary
                 )
                     .cornerRadius(28)
             }
             .padding(.horizontal, 32)
             .padding(.bottom, 36)
         }
-        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
+        .background(Color.white.ignoresSafeArea())
         .onAppear {
             loadRandomPhotos()
             startAnimations()

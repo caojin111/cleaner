@@ -21,16 +21,16 @@ struct OnboardingPage2View: View {
             // 图标
             Image(systemName: "checkmark.shield")
                 .font(.system(size: 70, weight: .light))
-                .foregroundColor(Color(red: 0.2, green: 0.2, blue: 0.2))
+                .foregroundColor(Color.seniorPrimary)
             // 文案
             VStack(spacing: 18) {
                 Text(Constants.Onboarding.page2Title)
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
-                Text("为了提供更好的清理体验，我们需要您的授权")
+                Text("onboarding.page2.subtitle".localized)
                     .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(.gray)
+                    .foregroundColor(.seniorText)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
             }
@@ -38,21 +38,15 @@ struct OnboardingPage2View: View {
             VStack(spacing: 16) {
                 PermissionRow(
                     icon: "📸",
-                    title: "照片库权限",
-                    description: "分析和清理相似照片",
+                    title: "onboarding.page2.photo_permission".localized,
+                    description: "onboarding.page2.analyze_similar_photos".localized,
                     status: permissionManager.getPermissionStatusText(for: "photos")
                 )
                 PermissionRow(
                     icon: "🔔",
-                    title: "通知权限",
-                    description: "及时提醒清理建议",
+                    title: "onboarding.page2.notification_permission".localized,
+                    description: "onboarding.page2.cleaning_suggestion".localized,
                     status: permissionManager.getPermissionStatusText(for: "notifications")
-                )
-                PermissionRow(
-                    icon: "📁",
-                    title: "文件访问",
-                    description: "可选择要清理的文件",
-                    status: "手动选择"
                 )
             }
             .padding(.horizontal, 24)
@@ -60,12 +54,12 @@ struct OnboardingPage2View: View {
             // 按钮组
             VStack(spacing: 16) {
                 Button(action: { requestPermissions() }) {
-                        Text(isRequestingPermissions ? "请求中..." : Constants.Onboarding.page2Button)
+                        Text(isRequestingPermissions ? "onboarding.page2.requesting".localized : Constants.Onboarding.page2Button)
                         .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(.black)
+                        .foregroundColor(.white)
                         .frame(maxWidth: .infinity, minHeight: 56)
                     .background(
-                            LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
+                            Color.seniorPrimary
                     )
                         .cornerRadius(28)
                 }
@@ -77,12 +71,12 @@ struct OnboardingPage2View: View {
                         }
                         Logger.logPageNavigation(from: "Onboarding-2", to: "Onboarding-3")
                     }) {
-                            Text("继续")
+                            Text("onboarding.page2.continue".localized)
                             .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(.black)
+                            .foregroundColor(.white)
                             .frame(maxWidth: .infinity, minHeight: 56)
                         .background(
-                                LinearGradient(gradient: Gradient(colors: [Color(red: 0.85, green: 1, blue: 0.72), Color(red: 0.66, green: 1, blue: 0.81)]), startPoint: .leading, endPoint: .trailing)
+                                Color.seniorPrimary
                         )
                             .cornerRadius(28)
                     }
@@ -91,14 +85,14 @@ struct OnboardingPage2View: View {
             .padding(.horizontal, 32)
             .padding(.bottom, 36)
         }
-        .background(Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea())
-        .alert("权限设置", isPresented: $showPermissionAlert) {
-            Button("去设置") {
+        .background(Color.white.ignoresSafeArea())
+        .alert("onboarding.page2.title".localized, isPresented: $showPermissionAlert) {
+            Button("onboarding.page2.gotosetting".localized) {
                 permissionManager.openAppSettings()
             }
-            Button("取消", role: .cancel) { }
+            Button("onboarding.page2.cancel".localized, role: .cancel) { }
         } message: {
-            Text("请在设置中开启照片库权限以继续使用应用")
+            Text("onboarding.page2.permission_required".localized)
         }
     }
     

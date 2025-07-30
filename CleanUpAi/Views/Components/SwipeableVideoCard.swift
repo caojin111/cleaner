@@ -48,7 +48,7 @@ struct SwipeableVideoCard: View {
                                     .scaleEffect(1.5)
                                     .padding(.bottom, 8)
                                 
-                                Text("加载中...")
+                                Text("videos.loading".localized)
                                     .font(.seniorCaption)
                                     .foregroundColor(.white)
                             }
@@ -103,7 +103,7 @@ struct SwipeableVideoCard: View {
                 .foregroundColor(.seniorSecondary)
                 
                 if item.isDuplicate {
-                    Text("相似度: \(Int(item.similarityScore * 100))%")
+                    Text("photos.similarity".localized(Int(item.similarityScore * 100)))
                         .font(.seniorCaption)
                         .fontWeight(.semibold)
                         .foregroundColor(.orange)
@@ -234,7 +234,7 @@ struct SwipeableVideoCard: View {
                             Image(systemName: "trash.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.seniorDanger)
-                            Text("删除")
+                            Text("photos.delete".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
                                 .foregroundColor(.seniorDanger)
@@ -252,7 +252,7 @@ struct SwipeableVideoCard: View {
                             Image(systemName: "heart.fill")
                                 .font(.largeTitle)
                                 .foregroundColor(.seniorSuccess)
-                            Text("保留")
+                            Text("photos.keep".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
                                 .foregroundColor(.seniorSuccess)
@@ -282,6 +282,10 @@ struct SwipeableVideoCard: View {
             // 延迟执行回调，确保动画开始
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 onSwipeLeft(item)
+                // 修复：滑动回调后重置动画状态，防止卡死
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isSwipeAnimating = false
+                }
             }
             
         } else if value.translation.width > Constants.swipeThreshold {
@@ -297,6 +301,10 @@ struct SwipeableVideoCard: View {
             // 延迟执行回调，确保动画开始
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 onSwipeRight(item)
+                // 修复：滑动回调后重置动画状态，防止卡死
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    isSwipeAnimating = false
+                }
             }
             
         } else {

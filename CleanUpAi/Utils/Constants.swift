@@ -11,9 +11,9 @@ import SwiftUI
 struct Constants {
     
     // MARK: - App Info
-    static let appName = "CleanUp AI"
-    static let developerInfo = "Made with LazyCat"
-    static let appVersion = "1.0.0"
+    static let appName = "app.name".localized
+    static let developerInfo = "app.developer".localized
+    static let appVersion = "app.version".localized
     
     // MARK: - Timing
     static let splashDuration: Double = 2.5
@@ -27,11 +27,11 @@ struct Constants {
     
     // MARK: - Subscription Prices
     struct Subscription {
-        static let yearlyOriginalPrice = "$49.99/年" // 原价（划线显示）
-        static let yearlyPrice = "$29.99/年" // 折扣价
-        static let yearlyTrial = "7天免费试用"
-        static let monthlyPrice = "$9.99/月"
-        static let weeklyPrice = "$4.99/周"
+        static let yearlyOriginalPrice = "paywall.plan.yearly_original_price".localized // 原价（划线显示）
+        static let yearlyPrice = "paywall.plan.yearly_price".localized // 折扣价
+        static let yearlyTrial = "paywall.plan.yearly_trial".localized
+        static let monthlyPrice = "paywall.plan.monthly_price".localized
+        static let weeklyPrice = "paywall.plan.weekly_price".localized
     }
     
     // MARK: - Onboarding Content
@@ -39,8 +39,8 @@ struct Constants {
         static let page1Title = "高效清理，节省空间"
         static let page1Subtitle = "智能分析，提升手机性能"
         
-        static let page2Title = "需要以下权限"
-        static let page2Button = "授权"
+        static let page2Title = "onboarding.page2.title".localized
+        static let page2Button = "onboarding.page2.granted".localized
         
         static let page3Title = "年度图片回顾"
         static let page3Subtitle = "智能分析您的照片收藏"
@@ -67,7 +67,7 @@ extension Font {
 }
 
 extension Color {
-    static let seniorPrimary = Color(red: 0.2, green: 0.6, blue: 1.0)
+    static let seniorPrimary = Color(red: 11.0/255.0, green: 173.0/255.0, blue: 217.0/255.0)
     static let seniorSecondary = Color(red: 0.5, green: 0.5, blue: 0.5)
     static let seniorBackground = Color(red: 0.98, green: 0.98, blue: 0.98)
     static let seniorText = Color(red: 0.1, green: 0.1, blue: 0.1)

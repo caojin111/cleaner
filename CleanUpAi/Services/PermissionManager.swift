@@ -135,37 +135,38 @@ class PermissionManager: ObservableObject {
     func getPermissionStatusText(for permission: String) -> String {
         switch permission {
         case "photos":
-            switch photoLibraryStatus {
-            case .authorized:
-                return "已授权"
-            case .limited:
-                return "部分授权"
-            case .denied:
-                return "已拒绝"
-            case .restricted:
-                return "受限制"
+            let status = PHPhotoLibrary.authorizationStatus()
+            switch status {
+            case .authorized, .limited:
+                return "onboarding.page2.authorized".localized
+            case .denied, .restricted:
+                return "onboarding.page2.not_set".localized
             case .notDetermined:
-                return "未设置"
+                return "onboarding.page2.not_set".localized
             @unknown default:
-                return "未知"
+                return "onboarding.page2.not_set".localized
             }
         case "notifications":
-            switch notificationStatus {
-            case .authorized:
-                return "已授权"
-            case .denied:
-                return "已拒绝"
-            case .notDetermined:
-                return "未设置"
-            case .provisional:
-                return "临时授权"
-            case .ephemeral:
-                return "临时授权"
-            @unknown default:
-                return "未知"
+            let center = UNUserNotificationCenter.current()
+            var isAuthorized = false
+            let semaphore = DispatchSemaphore(value: 0)
+            
+            center.getNotificationSettings { settings in
+                isAuthorized = settings.authorizationStatus == .authorized
+                semaphore.signal()
             }
+            
+            _ = semaphore.wait(timeout: .now() + 1.0)
+            
+            if isAuthorized {
+                return "onboarding.page2.authorized".localized
+            } else {
+                return "onboarding.page2.not_set".localized
+            }
+        case "files":
+            return "onboarding.page2.not_set".localized
         default:
-            return "未知"
+            return "onboarding.page2.not_set".localized
         }
     }
 } 

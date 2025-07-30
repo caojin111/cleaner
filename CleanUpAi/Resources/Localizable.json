@@ -1,0 +1,600 @@
+{
+  "en": {
+    "app": {
+      "name": "CleanUp AI",
+      "developer": "Made with LazyCat",
+      "version": "v1.0.0"
+    },
+    "navigation": {
+      "photos": "Photos",
+      "videos": "Videos",
+      "audio": "Audio",
+      "files": "Files",
+      "recycle_bin": "Recycle Bin",
+      "more": "More"
+    },
+    "onboarding": {
+      "page1": {
+        "title": "Just 1 min a day, \nclean your photo library",
+        "subtitle": "AI Cleaning analysis to improve phone performance",
+        "continue": "Continue"
+      },
+      "page2": {
+        "title": "Required Permissions",
+        "subtitle": "To provide better cleaning experience, we need your authorization",
+        "continue": "Continue",
+        "permission_required": "Please enable photo library permission in Settings to continue using the app",
+        "photo_permission": "Photo Library",
+        "analyze_similar_photos": "Analyze and clean similar photos",
+        "notification_permission": "Notification",
+        "cleaning_suggestion": "Timely cleaning suggestions",
+        "file_access": "File Access",
+        "select_files": "Select files to clean",
+        "gotosetting": "Go to setting",
+        "not_set": "Not Set",
+        "authorized": "Authorized",
+        "granted": "Granted",
+        "requesting": "Requesting...",
+        "title": "Permission Settings",
+        "gotosetting": "Go to Settings",
+        "cancel": "Cancel"
+      },
+      "page3": {
+        "title": "Annual Photo Review",
+        "subtitle": "Smart analysis of your photo collection",
+        "view_photos": "Analyze My Photo library",
+        "smart_recognition": "Recognition of similar photos",
+        "analyze_storage": "Analyze storage usage",
+        "find_best": "Find the best photos to keep",
+        "organize_by_time_type": "Organize by time and type"
+      },
+      "transition": {
+        "title": "AI Analyzing...",
+        "subtitle": "Scanning your photo library and detecting duplicates",
+        "progress_text": "Please wait a moment...",
+        "analyzing": "AI is smartly analyzing..."
+      },
+      "page4": {
+        "title": "Waiting to be cleaned",
+        "subtitle": "Start cleaning to free up more space",
+        "photos_count": "photos",
+        "start_cleaning": "Start Cleaning",
+        "estimated_duplicates": "Estimated duplicate photos",
+        "estimated_saving": "Estimated space saving",
+        "bytes": "%d bytes",
+        "photos": "%d photos",
+        "performance_boost": "Performance Boost",
+        "significant_improvement": "Significant Improvement",
+        "calculating": "Calculating...",
+        "photos_unit": "pics",
+        "gb_unit": "GB",
+        "mb_unit": "MB",
+        "kb_unit": "KB",
+        "bytes_unit": "bytes"
+      }
+    },
+    "paywall": {
+      "title": "CleanUp AI Pro",
+      "subtitle": "Unlock all features for the best cleaning experience",
+      "select_plan": "Choose Subscription Plan",
+      "recommended": "Recommended",
+      "discount": "40% OFF",
+      "trial_days": "%d days free trial",
+      "trial_then": "%d days free, then %@",
+      "subscribe_now": "Subscribe Now",
+      "start_free_trial": "Start Free Trial",
+      "subscription_terms": "Subscription Terms",
+      "term1": "• Subscriptions will auto-renew unless cancelled 24 hours before the current period ends",
+      "term2": "• You can manage subscriptions and turn off auto-renewal in Apple ID settings",
+      "term3": "• Cancelling during the free trial period will not incur any charges",
+      "success_title": "Subscription Successful",
+      "success_message": "You have successfully subscribed to Pro features and can experience all functions completely.",
+      "ok": "OK",
+      "features": {
+        "smart_analysis": "Smart Analysis",
+        "smart_analysis_desc": "AI-powered duplicate detection",
+        "unlimited_swipes": "Unlimited Swipes",
+        "unlimited_swipes_desc": "No daily swipe limits",
+        "batch_operations": "Batch Operations",
+        "batch_operations_desc": "Efficient bulk management",
+        "priority_support": "Priority Support",
+        "priority_support_desc": "24/7 customer service"
+      },
+      "feature": {
+        "unlimited_cleaning": "Unlimited slide chance",
+        "ai_detection": "AI algorithm for accurate detection",
+        "free_space": "Free up storage",
+        "save_80": "Save up to 80% space",
+        "safe_delete": "Safe deleting",
+        "recycle_bin": "Recycle bin mechanism to prevent mistakes",
+        "batch": "Batch processing",
+        "one_click_clean": "One-click cleaning of thousands of files",
+        "no_ads": "No ads",
+        "clean_experience": "Pure experience without interruption"
+      },
+      "plan": {
+        "yearly": "Yearly Plan",
+        "yearly_price": "$%s/year",
+        "monthly": "Monthly Plan",
+        "monthly_price": "$%s/month",
+        "weekly": "Weekly Plan",
+        "weekly_price": "$%s/week",
+        "yearly_unit": "年",
+        "monthly_unit": "月",
+        "weekly_unit": "周"
+      },
+      "privacy_policy": "Privacy Policy",
+      "terms_of_use": "Terms of Use",
+      "restore_purchase": "Restore Purchase",
+      "restore_result": "Restore Result",
+      "restore_success": "Purchase restored successfully! Your Pro subscription has been activated.",
+      "restore_no_subscription": "No active subscription found. Please check your purchase history or contact support.",
+      "restore_failed": "Failed to restore purchases: %@",
+      "subscription_success": "Congratulations! You have successfully subscribed to Pro features. You can now enjoy all premium features.",
+      "restore_success_message": "Congratulations! Your purchase has been restored successfully. Your Pro subscription is now active."
+    },
+    "photos": {
+      "title": "Photo Cleaning",
+      "analyzing": "Analyzing photos...",
+      "progress": "Processed %d%%",
+      "no_duplicates": "No duplicate photo",
+      "no_duplicates_subtitle": "Your photo library looks very clean!",
+      "reanalyze": "Re-AI analyze",
+      "duplicate_photos": "Duplicate Photos",
+      "space_savings": "Space Savings",
+      "unlimited_swipes": "Unlimited Swipes",
+      "remaining_swipes": "Remaining %d/10",
+      "cleaning_complete": "Cleaning Complete!",
+      "cleaning_success": "You have successfully cleaned all duplicate photos\nYour phone space has been optimized",
+      "processed_count": "Processed %d photos this time",
+      "space_saved": "Space saved: %@",
+      "loading": "Loading...",
+      "similarity": "Similarity: %d%%",
+      "delete": "Delete",
+      "keep": "Keep",
+      "settings": "Settings",
+      "coming_soon": "Coming soon...",
+      "deleting_photo": "Deleting photo...",
+      "batch_deleting": "Batch deleting...",
+      "start_free_trial": "Start Free Trial",
+      "subscribe_now": "Subscribe Now"
+    },
+    "videos": {
+      "title": "Video Cleaning",
+      "analyzing": "Analyzing videos...",
+      "progress": "Processed %d%%",
+      "no_duplicates": "No duplicate videos found",
+      "no_duplicates_subtitle": "Your video library looks very clean!",
+      "reanalyze": "Re-analyze",
+      "duplicate_videos": "Duplicate Videos",
+      "space_savings": "Space Savings",
+      "unlimited_swipes": "Unlimited Swipes",
+      "remaining_swipes": "Remaining %d/10",
+      "delete": "Delete",
+      "keep": "Keep",
+      "cleaning_complete": "Video cleaning complete!",
+      "cleaning_success": "You have successfully cleaned all duplicate videos\nYour phone space has been optimized",
+      "processed_count": "Processed %d videos this time",
+      "space_saved": "Space saved: %@",
+      "view_recycle_bin": "View Recycle Bin"
+    },
+    "audio": {
+      "title": "Audio Cleaning",
+      "coming_soon": "Coming soon\nStay tuned..."
+    },
+    "files": {
+      "title": "File Cleaning",
+      "coming_soon": "Coming soon\nStay tuned..."
+    },
+    "recycle_bin": {
+      "title": "Recycle Bin",
+      "empty": "Recycle Bin is empty",
+      "empty_subtitle": "Deleted files will be temporarily saved here\nYou can restore or permanently delete them at any time",
+      "loading": "Loading",
+      "restore": "Restore",
+      "delete": "Delete",
+      "file_count": "File Count",
+      "space_used": "Space Used",
+      "clear_all": "Clear All",
+      "confirm_delete_photo": "Confirm Delete Photo",
+      "confirm_batch_delete": "Confirm Batch Delete",
+      "cancel": "Cancel",
+      "clear": "Clear",
+      "batch_delete_confirm": "This will permanently delete %d files from the recycle bin. This action cannot be undone.",
+      "delete_confirm": "This will permanently delete \"%@\". This action cannot be undone.",
+      "delete_confirm_generic": "This will permanently delete this item. This action cannot be undone.",
+      "deleting_photo": "Deleting photo...",
+      "batch_deleting": "Batch deleting..."
+    },
+    "more": {
+      "title": "More",
+      "pro_card": {
+        "title": "Premium",
+        "subtitle": "Pro feature",
+        "button": "Get Now",
+        "yearly_plan": "Yearly Plan",
+        "monthly_plan": "Monthly Plan",
+        "weekly_plan": "Weekly Plan"
+      },
+      "menu": {
+        "restore": "Restore",
+        "rate_us": "Rate Us",
+        "contact_us": "Contact Us",
+        "privacy_policy": "Privacy Policy",
+        "developer": "Developer",
+        "version": "Version",
+        "daily_reminder": {
+          "title": "Daily Reminder",
+          "enabled": "Enabled (8:00 PM)",
+          "disabled": "Disabled"
+        }
+      },
+      "contact": {
+        "title": "Contact Us",
+        "subtitle": "If you have any questions or suggestions\nPlease contact us through the following methods",
+        "send_email": "Send Email",
+        "done": "Done"
+      },
+      "support": {
+        "title": "Thank You for Your Support",
+        "subtitle": "Your support is our motivation to continue improving\nWe will continue to provide you with better services"
+      },
+      "privacy": {
+        "loading": "Loading privacy policy...",
+        "load_failed": "Load failed"
+      },
+      "restore_result": "Restore Result",
+      "restore_success": "Purchase restored successfully! Your Pro subscription has been activated.",
+      "restore_no_subscription": "No active subscription found. Please check your purchase history or contact support.",
+      "restore_failed": "Failed to restore purchases: %@",
+      "notification_result": "Notification Result",
+      "notification_enabled": "Daily cleanup reminder enabled! You'll receive a notification at 8:00 PM every day.",
+      "notification_disabled": "Daily cleanup reminder disabled.",
+      "notification_permission_denied": "Notification permission is required to enable daily reminders. Please enable it in Settings.",
+      "ok": "OK"
+    },
+    "rate_us": {
+      "title": "Rate CleanUp AI",
+      "subtitle": "How would you rate your experience with our app?",
+      "feedback": {
+        "title": "Help us improve",
+        "subtitle": "We'd love to hear your feedback to make our app better!",
+        "placeholder": "Please share your thoughts...",
+        "send": "Send Feedback",
+        "later": "Maybe Later"
+      },
+      "thanks": {
+        "title": "Thank you!",
+        "subtitle": "We're glad you love our app! Would you like to rate us on the App Store?",
+        "rate_now": "Rate on App Store",
+        "later": "Maybe Later"
+      },
+      "mail": {
+        "sent": "Feedback sent successfully!",
+        "saved": "Feedback saved to drafts.",
+        "cancelled": "Email cancelled.",
+        "failed": "Failed to send email.",
+        "unknown": "Unknown result.",
+        "error": "Email error: %@",
+        "result_title": "Email Result"
+      },
+      "thank_you": {
+        "title": "Thank You!",
+        "subtitle": "Thank you for your rating! We will continue to work hard to provide you with better services.",
+        "ok": "OK"
+      }
+    },
+    "common": {
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "delete": "Delete",
+      "restore": "Restore",
+      "keep": "Keep",
+      "continue": "Continue",
+      "done": "Done",
+      "ok": "OK",
+      "loading": "Loading...",
+      "error": "Error",
+      "success": "Success"
+    }
+  },
+  "zh": {
+    "app": {
+      "name": "CleanUp AI",
+      "developer": "Made with LazyCat",
+      "version": "v1.0.0"
+    },
+    "navigation": {
+      "photos": "照片",
+      "videos": "视频",
+      "audio": "音频",
+      "files": "文件",
+      "recycle_bin": "回收站",
+      "more": "更多"
+    },
+    "onboarding": {
+      "page1": {
+        "title": "高效清理，节省空间",
+        "subtitle": "智能分析，提升手机性能",
+        "continue": "继续"
+      },
+      "page2": {
+        "title": "需要以下权限",
+        "subtitle": "为了提供更好的清理体验，我们需要您的授权",
+        "continue": "继续",
+        "permission_required": "请在设置中开启照片库权限以继续使用应用",
+        "photo_permission": "Photo Library Permission",
+        "analyze_similar_photos": "Analyze and clean similar photos",
+        "notification_permission": "Notification Permission",
+        "cleaning_suggestion": "Timely cleaning suggestions",
+        "file_access": "File Access",
+        "select_files": "Select files to clean",
+        "manual_select": "Manual Select",
+        "not_set": "Not Set",
+        "authorized": "Authorize",
+        "granted": "Granted",
+        "requesting": "Requesting...",
+        "title": "权限设置",
+        "gotosetting": "去设置",
+        "cancel": "取消"
+      },
+      "page3": {
+        "title": "年度图片回顾",
+        "subtitle": "智能分析您的照片收藏",
+        "view_photos": "查看我的照片",
+        "smart_recognition": "Smart recognition of similar photos",
+        "analyze_storage": "Analyze storage usage",
+        "find_best": "Find the best photos to keep",
+        "organize_by_time_type": "Organize by time and type"
+      },
+      "transition": {
+        "title": "AI正在智能分析中...",
+        "subtitle": "正在扫描您的照片库，检测重复和相似图片",
+        "progress_text": "请稍等片刻...",
+        "analyzing": "AI正在智能分析中..."
+      },
+      "page4": {
+        "title": "您有 %d 张照片等待清理",
+        "subtitle": "开始清理，释放更多空间",
+        "photos_count": "张照片",
+        "start_cleaning": "开始清理",
+        "estimated_duplicates": "预计重复照片",
+        "estimated_saving": "预计节省空间",
+        "bytes": "%d bytes",
+        "photos": "%d photos",
+        "performance_boost": "性能提升",
+        "significant_improvement": "显著改善",
+        "calculating": "计算中...",
+        "photos_unit": "张",
+        "gb_unit": "GB",
+        "mb_unit": "MB",
+        "kb_unit": "KB",
+        "bytes_unit": "字节"
+      }
+    },
+    "paywall": {
+      "title": "CleanUp AI Pro",
+      "subtitle": "解锁全部功能，获得最佳清理体验",
+      "select_plan": "选择订阅方案",
+      "recommended": "推荐",
+      "discount": "40% OFF",
+      "trial_days": "%d天免费试用",
+      "trial_then": "%d天免费，然后%@",
+      "subscribe_now": "立即订阅",
+      "start_free_trial": "开始免费试用",
+      "subscription_terms": "订阅说明",
+      "term1": "• 订阅将自动续费，除非在当前周期结束前24小时取消",
+      "term2": "• 可在Apple ID设置中管理订阅和关闭自动续费",
+      "term3": "• 免费试用期间取消不会产生费用",
+      "success_title": "模拟订阅成功",
+      "success_message": "您已成功模拟订阅Pro功能，可完整体验所有功能。",
+      "ok": "确定",
+      "features": {
+        "smart_analysis": "智能分析",
+        "smart_analysis_desc": "AI驱动的重复检测",
+        "unlimited_swipes": "无限滑动",
+        "unlimited_swipes_desc": "无每日滑动限制",
+        "batch_operations": "批量操作",
+        "batch_operations_desc": "高效的批量管理",
+        "priority_support": "优先支持",
+        "priority_support_desc": "24/7客户服务"
+      },
+      "feature": {
+        "unlimited_cleaning": "Unlimited duplicate file cleaning",
+        "ai_detection": "AI algorithm for accurate detection",
+        "free_space": "Free up storage space",
+        "save_80": "Save up to 80% space",
+        "safe_delete": "Safe delete protection",
+        "recycle_bin": "Recycle bin mechanism to prevent mistakes",
+        "batch": "Batch processing",
+        "one_click_clean": "One-click cleaning of thousands of files",
+        "no_ads": "No ads",
+        "clean_experience": "Pure experience without interruption"
+      },
+      "plan": {
+        "yearly": "年度订阅",
+        "yearly_price": "$%s/年",
+        "monthly": "月度订阅",
+        "monthly_price": "$%s/月",
+        "weekly": "周度订阅",
+        "weekly_price": "$%s/周",
+        "yearly_unit": "年",
+        "monthly_unit": "月",
+        "weekly_unit": "周"
+      },
+      "privacy_policy": "隐私政策",
+      "terms_of_use": "使用条款",
+      "restore_purchase": "恢复购买",
+      "restore_result": "恢复结果",
+      "restore_success": "购买恢复成功！您的Pro订阅已激活。",
+      "restore_no_subscription": "未找到有效订阅。请检查您的购买历史或联系支持。",
+      "restore_failed": "恢复购买失败：%@",
+      "subscription_success": "恭喜您！您已成功订阅Pro功能。现在可以享受所有高级功能。",
+      "restore_success_message": "恭喜您！您的购买已成功恢复。您的Pro订阅现已激活。"
+    },
+    "photos": {
+      "title": "照片清理",
+      "analyzing": "正在分析照片...",
+      "progress": "已处理 %d%%",
+      "no_duplicates": "没有发现重复照片！！！",
+      "no_duplicates_subtitle": "您的照片库看起来很整洁！\n继续保持良好的管理习惯。",
+      "reanalyze": "重新分析",
+      "duplicate_photos": "重复照片",
+      "space_savings": "可节省",
+      "unlimited_swipes": "无限滑动",
+      "remaining_swipes": "剩余 %d/10",
+      "cleaning_complete": "清理完成！",
+      "cleaning_success": "您已成功清理了所有重复照片\n手机空间得到了优化",
+      "processed_count": "本次共处理%d张照片",
+      "space_saved": "节省空间：%@",
+      "loading": "加载中...",
+      "similarity": "相似度: %d%%",
+      "delete": "删除",
+      "keep": "保留",
+      "settings": "设置页面",
+      "coming_soon": "敬请期待...",
+      "deleting_photo": "正在删除图片...",
+      "batch_deleting": "正在批量删除...",
+      "start_free_trial": "开始免费试用",
+      "subscribe_now": "立即订阅"
+    },
+    "videos": {
+      "title": "视频清理",
+      "analyzing": "正在分析视频...",
+      "progress": "已处理 %d%%",
+      "no_duplicates": "没有发现重复视频",
+      "no_duplicates_subtitle": "您的视频库看起来很整洁！",
+      "reanalyze": "重新分析",
+      "duplicate_videos": "重复视频",
+      "space_savings": "可节省",
+      "unlimited_swipes": "无限滑动",
+      "remaining_swipes": "剩余 %d/10",
+      "delete": "删除",
+      "keep": "保留",
+      "cleaning_complete": "视频清理完成！",
+      "cleaning_success": "您已成功清理了所有重复视频\n手机空间得到了优化",
+      "processed_count": "本次共处理%d个视频",
+      "space_saved": "节省空间：%@",
+      "view_recycle_bin": "查看回收站"
+    },
+    "audio": {
+      "title": "音频清理",
+      "coming_soon": "即将推出\n敬请期待..."
+    },
+    "files": {
+      "title": "文件清理",
+      "coming_soon": "即将推出\n敬请期待..."
+    },
+    "recycle_bin": {
+      "title": "回收站",
+      "empty": "回收站为空",
+      "empty_subtitle": "删除的文件会暂时保存在这里\n您可以随时恢复或永久删除",
+      "loading": "加载中",
+      "restore": "恢复",
+      "delete": "删除",
+      "file_count": "文件数量",
+      "space_used": "占用空间",
+      "clear_all": "清空",
+      "confirm_delete_photo": "确认删除图片",
+      "confirm_batch_delete": "确认批量删除",
+      "cancel": "取消",
+      "clear": "清空",
+      "batch_delete_confirm": "将批量永久删除回收站中的 %d 个文件，此操作不可恢复",
+      "delete_confirm": "将永久删除图片「%@」，此操作不可恢复",
+      "delete_confirm_generic": "将永久删除该图片，此操作不可恢复",
+      "deleting_photo": "正在删除图片...",
+      "batch_deleting": "正在批量删除..."
+    },
+    "more": {
+      "title": "更多",
+      "pro_card": {
+        "title": "PRO 优惠",
+        "subtitle": "高级功能",
+        "button": "立即获取",
+        "yearly_plan": "年度订阅",
+        "monthly_plan": "月度订阅",
+        "weekly_plan": "周度订阅"
+      },
+      "menu": {
+        "restore": "恢复购买",
+        "rate_us": "给我们评分",
+        "contact_us": "联系我们",
+        "privacy_policy": "隐私政策",
+        "developer": "开发者",
+        "version": "版本",
+        "daily_reminder": {
+          "title": "每日清理提醒",
+          "enabled": "已开启 (晚上8点)",
+          "disabled": "已关闭"
+        }
+      },
+      "contact": {
+        "title": "联系我们",
+        "subtitle": "如有任何问题或建议\n请通过以下方式联系我们",
+        "send_email": "发送邮件",
+        "done": "完成"
+      },
+      "support": {
+        "title": "支持我们",
+        "subtitle": "如果您喜欢我们的应用，请支持我们"
+      },
+      "privacy": {
+        "loading": "正在加载隐私政策...",
+        "load_failed": "加载隐私政策失败"
+      },
+      "restore_result": "恢复结果",
+      "restore_success": "购买恢复成功！您的Pro订阅已激活。",
+      "restore_no_subscription": "未找到有效订阅。请检查您的购买历史或联系支持。",
+      "restore_failed": "恢复购买失败：%@",
+      "notification_result": "通知结果",
+      "notification_enabled": "每日清理提醒已开启！您将在每天晚上8点收到提醒。",
+      "notification_disabled": "每日清理提醒已关闭。",
+      "notification_permission_denied": "需要通知权限才能开启每日提醒。请在设置中开启通知权限。",
+      "ok": "确定"
+    },
+    "rate_us": {
+      "title": "为 CleanUp AI 评分",
+      "subtitle": "您对我们应用的体验如何？",
+      "feedback": {
+        "title": "帮助我们改进",
+        "subtitle": "我们很乐意听取您的反馈，让我们的应用变得更好！",
+        "placeholder": "请分享您的想法...",
+        "send": "发送反馈",
+        "later": "稍后再说"
+      },
+      "thanks": {
+        "title": "谢谢您！",
+        "subtitle": "很高兴您喜欢我们的应用！您愿意在App Store上为我们评分吗？",
+        "rate_now": "前往App Store评分",
+        "later": "稍后再说"
+      },
+      "mail": {
+        "sent": "反馈发送成功！",
+        "saved": "反馈已保存到草稿。",
+        "cancelled": "邮件已取消。",
+        "failed": "发送邮件失败。",
+        "unknown": "未知结果。",
+        "error": "邮件错误：%@",
+        "result_title": "邮件发送结果"
+      },
+      "thank_you": {
+        "title": "谢谢您！",
+        "subtitle": "感谢您的评价！我们会再接再厉，为您提供更好的服务。",
+        "ok": "确定"
+      }
+    },
+    "common": {
+      "cancel": "取消",
+      "confirm": "确认",
+      "delete": "删除",
+      "restore": "恢复",
+      "keep": "保留",
+      "continue": "继续",
+      "done": "完成",
+      "ok": "确定",
+      "loading": "加载中...",
+      "error": "错误",
+      "success": "成功"
+    }
+  }
+} 

@@ -19,12 +19,19 @@ enum ScrollDirection {
 
 struct PaywallView: View {
     var isFromOnboarding: Bool = false
-    @State private var selectedPlan = SubscriptionPlan.plans[0]
+    @State private var selectedPlan: SubscriptionPlan?
     @State private var showMainApp = false
     @State private var animateFeatures = false
     @Environment(\.dismiss) private var dismiss
     @StateObject private var userSettings = UserSettingsManager.shared
+    @StateObject private var storeManager = StoreKitManager.shared
     @State private var showCloseButton = false // 控制关闭按钮显示
+    @State private var showRestoreAlert = false // 恢复购买结果弹窗
+    @State private var restoreResultMessage = "" // 恢复购买结果消息
+    @State private var showSuccessAlert = false // 订阅/restore成功弹窗
+    @State private var successMessage = "" // 成功消息
+    @State private var cachedPlans: [SubscriptionPlan] = [] // 缓存的订阅方案
+    @State private var showingPrivacyPolicy = false // 显示隐私政策页面
     
     // 悬浮按钮相关状态
     @State private var scrollOffset: CGFloat = 0
@@ -34,17 +41,16 @@ struct PaywallView: View {
     @State private var previousScrollOffset: CGFloat = 0 // 记录上一次滚动位置
     @State private var scrollDirection: ScrollDirection = .none // 滚动方向
     @State private var isButtonOverlapping = false // 按钮是否重叠
+    @State private var uiRefreshTrigger = false // 用于触发UI刷新的触发器
     
     var body: some View {
         // 纯全屏视图，完全覆盖整个屏幕
         GeometryReader { geometry in
             ZStack(alignment: .topTrailing) {
                 // 背景渐变 - 覆盖整个屏幕
+                let gradientColors = [Color.seniorBackground, Color.white]
                 LinearGradient(
-                    gradient: Gradient(colors: [
-                        Color.seniorBackground,
-                        Color.white
-                    ]),
+                    gradient: Gradient(colors: gradientColors),
                     startPoint: .top,
                     endPoint: .bottom
                 )
@@ -83,11 +89,12 @@ struct PaywallView: View {
                             termsSection
                         }
                         .padding(.horizontal, 20)
-                        .padding(.top, geometry.safeAreaInsets.top + 20) // 适配安全区域
+                        .padding(.top, geometry.safeAreaInsets.top + 10) // 减少顶部间距
                         .background(
                             GeometryReader { scrollGeometry in
+                                let offset = scrollGeometry.frame(in: .named("scrollView")).minY
                                 Color.clear
-                                    .preference(key: ScrollOffsetPreferenceKey.self, value: scrollGeometry.frame(in: .named("scrollView")).minY)
+                                    .preference(key: ScrollOffsetPreferenceKey.self, value: offset)
                             }
                         )
                     }
@@ -95,7 +102,8 @@ struct PaywallView: View {
                     .onPreferenceChange(ScrollOffsetPreferenceKey.self) { value in
                         // 检测滚动方向
                         if value != scrollOffset {
-                            scrollDirection = value > scrollOffset ? .down : .up
+                            let newDirection: ScrollDirection = value > scrollOffset ? .down : .up
+                            scrollDirection = newDirection
                             previousScrollOffset = scrollOffset
                         }
                         
@@ -104,25 +112,7 @@ struct PaywallView: View {
                     }
                 }
 
-                // 关闭按钮绝对定位右上角，渐显动画
-                if showCloseButton {
-                    Button(action: {
-                        if isFromOnboarding {
-                            userSettings.markOnboardingCompleted()
-                            showMainApp = true
-                        } else {
-                            dismiss()
-                        }
-                    }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(.title2)
-                            .foregroundColor(.seniorSecondary)
-                            .padding(16)
-                    }
-                    .position(x: geometry.size.width - 30, y: geometry.safeAreaInsets.top + 30)
-                    .opacity(showCloseButton ? 1 : 0)
-                    .animation(.easeInOut(duration: 0.5), value: showCloseButton)
-                }
+
                 
                 // 悬浮订阅按钮
                 if isButtonFloating {
@@ -136,7 +126,7 @@ struct PaywallView: View {
                             }) {
                                 VStack(spacing: 8) {
                                     HStack {
-                                        Text(selectedPlan.trialDays != nil ? "开始免费试用" : "立即订阅")
+                                        Text(selectedPlan?.trialDays != nil ? "paywall.start_free_trial".localized : "paywall.subscribe_now".localized)
                                             .font(.seniorBody)
                                             .fontWeight(.bold)
                                         
@@ -146,8 +136,8 @@ struct PaywallView: View {
                                             .font(.title3)
                                     }
                                     
-                                    if let trialDays = selectedPlan.trialDays {
-                                        Text("\(trialDays)天免费，然后\(selectedPlan.price)")
+                                    if let selectedPlan = selectedPlan, let trialDays = selectedPlan.trialDays {
+                                        Text("paywall.trial_then".localized(trialDays, selectedPlan.price))
                                             .font(.seniorCaption)
                                             .opacity(0.8)
                                     }
@@ -171,6 +161,8 @@ struct PaywallView: View {
                                         .shadow(color: Color.seniorPrimary.opacity(0.4), radius: 12, x: 0, y: 6)
                                 )
                             }
+                            .disabled(selectedPlan == nil || storeManager.isLoading)
+                            .opacity(selectedPlan == nil || storeManager.isLoading ? 0.6 : 1.0)
                             
 
                         }
@@ -185,10 +177,45 @@ struct PaywallView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .animation(.easeInOut(duration: 0.3), value: isButtonFloating)
                 }
+                
+                // 关闭按钮 - 浮动在内容之上，不占用空间
+                if showCloseButton {
+                    VStack {
+                        HStack {
+                            Spacer()
+                            
+                            Button(action: {
+                                if isFromOnboarding {
+                                    userSettings.markOnboardingCompleted()
+                                    showMainApp = true
+                                } else {
+                                    dismiss()
+                                }
+                            }) {
+                                Image(systemName: "xmark.circle.fill")
+                                    .font(.title2)
+                                    .foregroundColor(.seniorSecondary)
+                                    .padding(12)
+                                    .background(
+                                        Circle()
+                                            .fill(Color.white.opacity(0.9))
+                                            .shadow(color: .black.opacity(0.1), radius: 4, x: 0, y: 2)
+                                    )
+                            }
+                        }
+                        .padding(.horizontal, 20)
+                        .padding(.top, geometry.safeAreaInsets.top + 10)
+                        
+                        Spacer()
+                    }
+                }
             }
         }
         .fullScreenCover(isPresented: $showMainApp) {
             MainTabView()
+        }
+        .sheet(isPresented: $showingPrivacyPolicy) {
+            PrivacyPolicyView()
         }
         .onAppear {
             Logger.logPageNavigation(from: isFromOnboarding ? "Onboarding" : "More", to: "Paywall")
@@ -197,16 +224,62 @@ struct PaywallView: View {
             isPageInitialized = false // 重置初始化状态
             isButtonFloating = false // 默认不显示悬浮按钮
             
+            // 立即开始加载产品信息
+            Task {
+                await storeManager.loadProducts()
+            }
+            
+            // 设置默认选中的方案（年订阅）
+            if selectedPlan == nil {
+                cachedPlans = getPlansWithRealPrices()
+                if !cachedPlans.isEmpty {
+                    selectedPlan = cachedPlans[0] // 默认选择第一个方案（年订阅）
+                }
+            }
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
                 withAnimation {
                     showCloseButton = true
                 }
             }
         }
+        .onChange(of: storeManager.products) { _ in
+            // 当产品加载完成时，更新选中的方案和价格
+            cachedPlans = getPlansWithRealPrices()
+            if selectedPlan == nil {
+                if !cachedPlans.isEmpty {
+                    selectedPlan = cachedPlans[0]
+                }
+            }
+            // 强制刷新UI以显示最新价格
+            uiRefreshTrigger.toggle()
+        }
+        .onChange(of: storeManager.isLoading) { _ in
+            // 当加载状态改变时，刷新UI
+            uiRefreshTrigger.toggle()
+        }
         // 完全禁用所有手势关闭
         .interactiveDismissDisabled(true)
         .gesture(DragGesture()) // 禁用拖拽手势
         .onTapGesture { } // 禁用点击手势
+
+        .alert("paywall.restore_result".localized, isPresented: $showRestoreAlert) {
+            Button("paywall.ok".localized) { }
+        } message: {
+            Text(restoreResultMessage)
+        }
+        .alert("paywall.success_title".localized, isPresented: $showSuccessAlert) {
+            Button("paywall.ok".localized) {
+                if isFromOnboarding {
+                    showMainApp = true
+                    Logger.logPageNavigation(from: "Paywall", to: "MainApp")
+                } else {
+                    dismiss()
+                }
+            }
+        } message: {
+            Text(successMessage)
+        }
     }
     
     // MARK: - 悬浮按钮状态更新
@@ -278,12 +351,12 @@ struct PaywallView: View {
                     .foregroundColor(.yellow)
                     .shadow(color: .yellow.opacity(0.3), radius: 8)
                 
-                Text("CleanUp AI Pro")
+                Text("paywall.title".localized)
                     .font(.seniorLargeTitle)
                     .fontWeight(.bold)
                     .foregroundColor(.seniorText)
                 
-                Text("解锁全部功能，获得最佳清理体验")
+                Text("paywall.subtitle".localized)
                     .font(.seniorBody)
                     .foregroundColor(.seniorSecondary)
                     .multilineTextAlignment(.center)
@@ -310,21 +383,51 @@ struct PaywallView: View {
     
     private var subscriptionSection: some View {
         VStack(spacing: 16) {
-            Text("选择订阅方案")
+            Text("paywall.select_plan".localized)
                 .font(.seniorTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.seniorText)
             
-            VStack(spacing: 12) {
-                ForEach(SubscriptionPlan.plans) { plan in
-                    SubscriptionPlanCard(
-                        plan: plan,
-                        isSelected: selectedPlan.id == plan.id,
-                        onSelect: {
-                            selectedPlan = plan
-                            Logger.subscription.info("选择订阅方案: \(plan.title)")
+            if storeManager.isLoading && storeManager.products.isEmpty {
+                VStack(spacing: 16) {
+                    ProgressView()
+                        .scaleEffect(1.2)
+                    Text("正在加载订阅方案...")
+                        .font(.seniorCaption)
+                        .foregroundColor(.seniorSecondary)
+                }
+                .padding(.vertical, 40)
+            } else if let errorMessage = storeManager.errorMessage {
+                VStack(spacing: 16) {
+                    Image(systemName: "exclamationmark.triangle")
+                        .font(.title)
+                        .foregroundColor(.seniorDanger)
+                    Text("加载失败: \(errorMessage)")
+                        .font(.seniorCaption)
+                        .foregroundColor(.seniorSecondary)
+                        .multilineTextAlignment(.center)
+                    Button("重试") {
+                        Task {
+                            await storeManager.loadProducts()
                         }
-                    )
+                    }
+                    .font(.seniorBody)
+                    .foregroundColor(.seniorPrimary)
+                }
+                .padding(.vertical, 40)
+            } else {
+                VStack(spacing: 12) {
+                    ForEach(cachedPlans) { plan in
+                        SubscriptionPlanCard(
+                            plan: plan,
+                            isSelected: selectedPlan?.id == plan.id,
+                            onSelect: {
+                                selectedPlan = plan
+                                Logger.subscription.info("选择订阅方案: \(plan.title)")
+                            }
+                        )
+
+                    }
                 }
             }
         }
@@ -340,7 +443,7 @@ struct PaywallView: View {
             }) {
                 VStack(spacing: 8) {
                     HStack {
-                        Text(selectedPlan.trialDays != nil ? "开始免费试用" : "立即订阅")
+                        Text(selectedPlan?.trialDays != nil ? "paywall.start_free_trial".localized : "paywall.subscribe_now".localized)
                             .font(.seniorBody)
                             .fontWeight(.bold)
                         
@@ -350,8 +453,8 @@ struct PaywallView: View {
                             .font(.title3)
                     }
                     
-                    if let trialDays = selectedPlan.trialDays {
-                        Text("\(trialDays)天免费，然后\(selectedPlan.price)")
+                    if let selectedPlan = selectedPlan, let trialDays = selectedPlan.trialDays {
+                        Text("paywall.trial_then".localized(trialDays, selectedPlan.price))
                             .font(.seniorCaption)
                             .opacity(0.8)
                     }
@@ -364,10 +467,7 @@ struct PaywallView: View {
                     RoundedRectangle(cornerRadius: Constants.cornerRadius)
                         .fill(
                             LinearGradient(
-                                gradient: Gradient(colors: [
-                                    Color.seniorPrimary,
-                                    Color.seniorPrimary.opacity(0.8)
-                                ]),
+                                gradient: Gradient(colors: [Color.seniorPrimary, Color.seniorPrimary.opacity(0.8)]),
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -375,8 +475,8 @@ struct PaywallView: View {
                         .shadow(color: Color.seniorPrimary.opacity(0.4), radius: 12, x: 0, y: 6)
                 )
             }
-            
-
+            .disabled(selectedPlan == nil || storeManager.isLoading)
+            .opacity(selectedPlan == nil || storeManager.isLoading ? 0.6 : 1.0)
         }
         .opacity(isButtonFloating ? 0 : 1) // 当悬浮按钮显示时，隐藏页面按钮
         .animation(.easeInOut(duration: 0.3), value: isButtonFloating)
@@ -386,32 +486,34 @@ struct PaywallView: View {
     
     private var termsSection: some View {
         VStack(spacing: 12) {
-            Text("订阅说明")
+            Text("paywall.subscription_terms".localized)
                 .font(.seniorCaption)
                 .fontWeight(.semibold)
                 .foregroundColor(.seniorText)
             
             VStack(alignment: .leading, spacing: 6) {
-                Text("• 订阅将自动续费，除非在当前周期结束前24小时取消")
-                Text("• 可在Apple ID设置中管理订阅和关闭自动续费")
-                Text("• 免费试用期间取消不会产生费用")
+                Text("paywall.term1".localized)
+                Text("paywall.term2".localized)
+                Text("paywall.term3".localized)
             }
             .font(.caption)
             .foregroundColor(.seniorSecondary)
             .multilineTextAlignment(.leading)
             
             HStack(spacing: 20) {
-                Button("隐私政策") { }
-                    .font(.caption)
-                    .foregroundColor(.seniorPrimary)
+                Button("paywall.privacy_policy".localized) { 
+                    // 直接显示隐私政策页面
+                    Logger.ui.info("用户从Paywall点击隐私政策")
+                    showingPrivacyPolicy = true
+                }
+                .font(.caption)
+                .foregroundColor(.seniorPrimary)
                 
-                Button("使用条款") { }
-                    .font(.caption)
-                    .foregroundColor(.seniorPrimary)
-                
-                Button("恢复购买") { }
-                    .font(.caption)
-                    .foregroundColor(.seniorPrimary)
+                Button("paywall.restore_purchase".localized) { 
+                    handleRestorePurchases()
+                }
+                .font(.caption)
+                .foregroundColor(.seniorPrimary)
             }
         }
         .padding(.bottom, 30)
@@ -425,30 +527,113 @@ struct PaywallView: View {
         }
     }
     
+    private func getPlansWithRealPrices() -> [SubscriptionPlan] {
+        let basePlans = SubscriptionPlan.getPlans()
+        return basePlans.map { plan in
+            // 根据产品ID获取真实价格
+            let realPrice: String
+            switch plan.productIdentifier {
+            case "yearly_29.99":
+                realPrice = storeManager.yearlyPrice
+            case "monthly_9.99":
+                realPrice = storeManager.monthlyPrice
+            case "weekly_2.99":
+                realPrice = storeManager.weeklyPrice
+            default:
+                realPrice = plan.price
+            }
+            
+            // 创建新的计划实例，使用真实价格，但保持原有的id
+            return SubscriptionPlan(
+                id: plan.id,
+                title: plan.title,
+                price: realPrice,
+                originalPrice: plan.originalPrice,
+                duration: plan.duration,
+                features: plan.features,
+                isRecommended: plan.isRecommended,
+                productIdentifier: plan.productIdentifier,
+                trialDays: plan.trialDays
+            )
+        }
+    }
+    
     private func handleSubscription() {
+        guard let selectedPlan = selectedPlan else {
+            Logger.subscription.error("未选择订阅方案")
+            return
+        }
+        
         Logger.subscription.info("开始订阅流程: \(selectedPlan.title)")
         
-        // TODO: 实现真实的订阅逻辑
-        // 标记用户已完成首次启动流程
-        userSettings.markOnboardingCompleted()
+        // 获取对应的StoreKit产品
+        guard let product = storeManager.getProduct(identifier: selectedPlan.productIdentifier) else {
+            Logger.subscription.error("未找到产品: \(selectedPlan.productIdentifier)")
+            return
+        }
         
-        // 跳转到主应用
-        if isFromOnboarding {
-            showMainApp = true
-            Logger.logPageNavigation(from: "Paywall", to: "MainApp")
-        } else {
-            dismiss()
+        // 执行购买
+        Task {
+            do {
+                if let transaction = try await storeManager.purchase(product) {
+                    // 购买成功
+                    await MainActor.run {
+                        userSettings.isSubscribed = true
+                        userSettings.markOnboardingCompleted()
+                        successMessage = "paywall.subscription_success".localized
+                        showSuccessAlert = true
+                        Logger.subscription.info("订阅成功: \(selectedPlan.title)")
+                    }
+                } else {
+                    // 用户取消或待处理
+                    Logger.subscription.info("订阅未完成: \(selectedPlan.title)")
+                }
+            } catch {
+                await MainActor.run {
+                    Logger.subscription.error("订阅失败: \(error.localizedDescription)")
+                    // 这里可以显示错误提示
+                }
+            }
+        }
+    }
+    
+    private func handleRestorePurchases() {
+        Logger.subscription.info("开始恢复购买流程")
+        
+        Task {
+            do {
+                let hasValidSubscription = try await storeManager.restorePurchases()
+                
+                            await MainActor.run {
+                if hasValidSubscription {
+                    userSettings.isSubscribed = true
+                    successMessage = "paywall.restore_success_message".localized
+                    showSuccessAlert = true
+                    Logger.subscription.info("恢复购买成功，找到有效订阅")
+                } else {
+                    restoreResultMessage = "paywall.restore_no_subscription".localized
+                    showRestoreAlert = true
+                    Logger.subscription.info("恢复购买完成，但未找到有效订阅")
+                }
+            }
+            } catch {
+                await MainActor.run {
+                    restoreResultMessage = "paywall.restore_failed".localized(error.localizedDescription)
+                    showRestoreAlert = true
+                    Logger.subscription.error("恢复购买失败: \(error.localizedDescription)")
+                }
+            }
         }
     }
     
     // MARK: - Pro Features Data
     
     private let proFeatures = [
-        ProFeature(icon: "🚀", title: "无限制清理重复文件", description: "AI算法精准识别"),
-        ProFeature(icon: "📱", title: "释放存储空间", description: "最多节省80%空间"),
-        ProFeature(icon: "🔒", title: "安全删除保护", description: "回收站机制防误删"),
-        ProFeature(icon: "⚡", title: "批量处理", description: "一键清理数千文件"),
-        ProFeature(icon: "🆓", title: "无广告", description: "纯净体验无打扰"), // 新增
+        ProFeature(icon: "🚀", title: "paywall.feature.unlimited_cleaning".localized, description: "paywall.feature.ai_detection".localized),
+        ProFeature(icon: "📱", title: "paywall.feature.free_space".localized, description: "paywall.feature.save_80".localized),
+        ProFeature(icon: "🔒", title: "paywall.feature.safe_delete".localized, description: "paywall.feature.recycle_bin".localized),
+        ProFeature(icon: "⚡", title: "paywall.feature.batch".localized, description: "paywall.feature.one_click_clean".localized),
+        ProFeature(icon: "🆓", title: "paywall.feature.no_ads".localized, description: "paywall.feature.clean_experience".localized), // 新增
     ]
 }
 
@@ -476,11 +661,16 @@ struct FeatureRow: View {
                     .font(.seniorBody)
                     .fontWeight(.semibold)
                     .foregroundColor(.seniorText)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
                 
                 Text(feature.description)
                     .font(.seniorCaption)
                     .foregroundColor(.seniorSecondary)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.8)
             }
+            .frame(minWidth: 200, maxWidth: .infinity, alignment: .leading)
             
             Spacer()
             
@@ -504,6 +694,8 @@ struct SubscriptionPlanCard: View {
     let plan: SubscriptionPlan
     let isSelected: Bool
     let onSelect: () -> Void
+    @State private var borderAnimation = false
+    @State private var animationEnabled = false
     
     var body: some View {
         Button(action: onSelect) {
@@ -516,7 +708,7 @@ struct SubscriptionPlanCard: View {
                             .foregroundColor(.seniorText)
                         
                         if plan.isRecommended {
-                            Text("推荐")
+                            Text("paywall.recommended".localized)
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .foregroundColor(.white)
@@ -541,7 +733,7 @@ struct SubscriptionPlanCard: View {
                                     .foregroundColor(.seniorSecondary)
                                     .strikethrough(true, color: .seniorSecondary)
                                 
-                                Text("40% OFF")
+                                Text("paywall.discount".localized)
                                     .font(.caption)
                                     .fontWeight(.bold)
                                     .foregroundColor(.white)
@@ -561,7 +753,7 @@ struct SubscriptionPlanCard: View {
                     }
                     
                     if let trialDays = plan.trialDays {
-                        Text("\(trialDays)天免费试用")
+                                                            Text("paywall.trial_days".localized(trialDays))
                             .font(.seniorCaption)
                             .foregroundColor(.seniorSuccess)
                     }
@@ -583,6 +775,8 @@ struct SubscriptionPlanCard: View {
                                 isSelected ? Color.seniorPrimary : Color.gray.opacity(0.3),
                                 lineWidth: isSelected ? 2 : 1
                             )
+                            .scaleEffect(borderAnimation ? 1.05 : 1.0)
+                            .opacity(borderAnimation ? 0.8 : 1.0)
                     )
                     .shadow(
                         color: isSelected ? Color.seniorPrimary.opacity(0.2) : .gray.opacity(0.1),
@@ -591,6 +785,20 @@ struct SubscriptionPlanCard: View {
                         y: isSelected ? 4 : 1
                     )
             )
+            .animation(animationEnabled ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true) : .easeOut(duration: 0.2), value: borderAnimation)
+            .onChange(of: isSelected) { newValue in
+                if newValue {
+                    // 选中时启用动画并开始闪烁
+                    animationEnabled = true
+                    borderAnimation = true
+                    Logger.ui.debug("订阅卡片选中: \(plan.title), 动画已启用")
+                } else {
+                    // 取消选中时禁用动画并重置状态
+                    animationEnabled = false
+                    borderAnimation = false
+                    Logger.ui.debug("订阅卡片取消选中: \(plan.title), 动画已禁用")
+                }
+            }
         }
         .buttonStyle(PlainButtonStyle())
     }

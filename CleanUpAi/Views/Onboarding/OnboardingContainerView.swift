@@ -15,19 +15,19 @@ struct OnboardingContainerView: View {
     @StateObject private var permissionManager = PermissionManager.shared
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
     
-    private let totalPages = 4
+    private let totalPages = 5
     
     var body: some View {
         ZStack {
-            Color(red: 0.95, green: 1, blue: 0.96).ignoresSafeArea()
+            Color.white.ignoresSafeArea()
             
             VStack {
-                // 进度指示器
+                // 进度指示器 (过渡页不显示单独的进度点)
                 HStack {
                     Spacer()
-                    ForEach(0..<totalPages, id: \.self) { index in
+                    ForEach(0..<4, id: \.self) { index in
                         Circle()
-                            .fill(index <= currentPage ? Color(red: 0.66, green: 1, blue: 0.81) : Color.white.opacity(0.18))
+                            .fill(index <= min(currentPage, 3) ? Color.seniorPrimary : Color.white.opacity(0.18))
                             .frame(width: 12, height: 12)
                             .animation(.easeInOut, value: currentPage)
                     }
@@ -37,20 +37,25 @@ struct OnboardingContainerView: View {
                 .padding(.top, 20)
                 
                 // 页面内容
-                TabView(selection: $currentPage) {
-                    OnboardingPage1View(currentPage: $currentPage)
-                        .tag(0)
-                    OnboardingPage2View(currentPage: $currentPage)
-                        .tag(1)
-                    OnboardingPage3View(currentPage: $currentPage)
-                        .tag(2)
-                    OnboardingPage4View(
-                        currentPage: $currentPage,
-                        showPaywall: $showPaywall
-                    )
-                    .tag(3)
+                Group {
+                    switch currentPage {
+                    case 0:
+                        OnboardingPage1View(currentPage: $currentPage)
+                    case 1:
+                        OnboardingPage2View(currentPage: $currentPage)
+                    case 2:
+                        OnboardingPage3View(currentPage: $currentPage)
+                    case 3:
+                        OnboardingTransitionView(currentPage: $currentPage)
+                    case 4:
+                        OnboardingPage4View(
+                            currentPage: $currentPage,
+                            showPaywall: $showPaywall
+                        )
+                    default:
+                        OnboardingPage1View(currentPage: $currentPage)
+                    }
                 }
-                .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
                 .animation(.easeInOut, value: currentPage)
             }
         }

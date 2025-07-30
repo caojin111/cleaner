@@ -22,7 +22,9 @@ class RecycleBinManager: ObservableObject {
     private let recycleKey = "RecycleBinItems"
     
     private init() {
+        Logger.recycleBin.info("RecycleBinManager 初始化开始")
         loadFromUserDefaults()
+        Logger.recycleBin.info("RecycleBinManager 初始化完成，当前项目数: \(self.items.count)")
     }
     
     // MARK: - Main Operations
@@ -38,8 +40,9 @@ class RecycleBinManager: ObservableObject {
         self.updateTotalSize()
         self.saveToUserDefaults()
         
-        // 发送通知
-        self.sendDeleteNotification(fileName: item.fileName)
+        // 移除推送通知 - 用户要求去掉删除时的推送
+        // self.sendDeleteNotification(fileName: item.fileName)
+        Logger.recycleBin.info("文件已移至回收站: \(item.fileName) (推送通知已禁用)")
     }
     
     func moveMultipleToRecycleBin(_ items: [MediaItem]) {
@@ -55,8 +58,9 @@ class RecycleBinManager: ObservableObject {
         self.updateTotalSize()
         self.saveToUserDefaults()
         
-        // 发送批量删除通知
-        self.sendBatchDeleteNotification(count: self.items.count)
+        // 移除推送通知 - 用户要求去掉删除时的推送
+        // self.sendBatchDeleteNotification(count: self.items.count)
+        Logger.recycleBin.info("批量文件已移至回收站: \(items.count) 个文件 (推送通知已禁用)")
     }
     
     func restore(_ item: MediaItem) {
@@ -148,14 +152,16 @@ class RecycleBinManager: ObservableObject {
             let totalTime = Date().timeIntervalSince(startTime)
             Logger.recycleBin.info("批量删除全部完成！共删除 \(itemsToDelete.count) 个项目，总耗时: \(String(format: "%.2f", totalTime))秒")
             
-            // 发送批量删除完成通知
-            self.sendBatchPermanentDeleteNotification(count: itemsToDelete.count)
+            // 移除推送通知 - 用户要求去掉删除时的推送
+            // self.sendBatchPermanentDeleteNotification(count: itemsToDelete.count)
+            Logger.recycleBin.info("批量永久删除完成: \(itemsToDelete.count) 个文件 (推送通知已禁用)")
             
         } catch {
             Logger.logError(error, context: "批量永久删除失败，已删除项目数: \(itemsToDelete.count - self.items.count)")
             
-            // 发送错误通知
-            self.sendDeleteErrorNotification()
+            // 移除推送通知 - 用户要求去掉删除时的推送
+            // self.sendDeleteErrorNotification()
+            Logger.recycleBin.error("批量删除过程中发生错误 (推送通知已禁用)")
         }
     }
     
@@ -170,21 +176,33 @@ class RecycleBinManager: ObservableObject {
     // MARK: - Data Persistence
     
     private func saveToUserDefaults() {
+        Logger.recycleBin.info("开始保存回收站数据，项目数量: \(self.items.count)")
         do {
             let data = try JSONEncoder().encode(self.items.map { RecycleBinItem(from: $0) })
             userDefaults.set(data, forKey: recycleKey)
+            Logger.recycleBin.info("成功保存回收站数据，大小: \(data.count) bytes")
         } catch {
             Logger.logError(error, context: "保存回收站数据")
         }
     }
     
     private func loadFromUserDefaults() {
-        guard let data = userDefaults.data(forKey: recycleKey) else { return }
+        Logger.recycleBin.info("开始加载回收站数据")
+        guard let data = userDefaults.data(forKey: recycleKey) else {
+            Logger.recycleBin.info("UserDefaults中没有找到回收站数据")
+            return
+        }
         
+        Logger.recycleBin.info("找到回收站数据，大小: \(data.count) bytes")
         do {
             let recycleBinItems = try JSONDecoder().decode([RecycleBinItem].self, from: data)
+            Logger.recycleBin.info("成功解码 \(recycleBinItems.count) 个回收站项目")
+            
             self.items = recycleBinItems.compactMap { $0.toMediaItem() }
+            Logger.recycleBin.info("成功恢复 \(self.items.count) 个MediaItem")
+            
             self.updateTotalSize()
+            Logger.recycleBin.info("回收站数据加载完成，总大小: \(self.formattedTotalSize)")
         } catch {
             Logger.logError(error, context: "加载回收站数据")
         }
@@ -279,6 +297,8 @@ class RecycleBinManager: ObservableObject {
               .prefix(limit)
               .map { $0 }
     }
+    
+
 }
 
 // MARK: - Serializable RecycleBin Item
@@ -309,8 +329,61 @@ private struct RecycleBinItem: Codable {
     }
     
     func toMediaItem() -> MediaItem? {
-        // 注意：这里只是简化的恢复逻辑，实际项目中需要更复杂的处理
-        // 因为PHAsset不能直接从localIdentifier恢复
-        return nil
+        // 解析UUID
+        guard let itemId = UUID(uuidString: id) else {
+            Logger.recycleBin.error("无效的UUID: \(id)")
+            return nil
+        }
+        
+        // 解析媒体类型
+        guard let mediaType = MediaItem.MediaType(rawValue: mediaType) else {
+            Logger.recycleBin.error("无效的媒体类型: \(mediaType)")
+            return nil
+        }
+        
+        // 尝试恢复PHAsset
+        var recoveredAsset: PHAsset? = nil
+        if let localIdentifier = localIdentifier, !localIdentifier.isEmpty {
+            let fetchResult = PHAsset.fetchAssets(withLocalIdentifiers: [localIdentifier], options: nil)
+            if let asset = fetchResult.firstObject {
+                recoveredAsset = asset
+                Logger.recycleBin.info("成功恢复PHAsset: \(fileName)")
+            } else {
+                Logger.recycleBin.warning("无法恢复PHAsset，localIdentifier: \(localIdentifier)")
+            }
+        }
+        
+        // 尝试恢复文件URL
+        var recoveredFileURL: URL? = nil
+        var recoveredContentType: UTType? = nil
+        if let fileURLString = fileURLString, let fileURL = URL(string: fileURLString) {
+            // 检查文件是否仍然存在
+            if FileManager.default.fileExists(atPath: fileURL.path) {
+                recoveredFileURL = fileURL
+                recoveredContentType = UTType(filenameExtension: fileURL.pathExtension) ?? .data
+                Logger.recycleBin.info("成功恢复文件URL: \(fileName)")
+            } else {
+                Logger.recycleBin.warning("文件不存在: \(fileURL.path)")
+            }
+        }
+        
+        // 创建MediaItem
+        let mediaItem = MediaItem(
+            id: itemId,
+            fileName: fileName,
+            size: size,
+            creationDate: creationDate,
+            mediaType: mediaType,
+            isDuplicate: isDuplicate,
+            similarityScore: similarityScore,
+            asset: recoveredAsset,
+            fileURL: recoveredFileURL,
+            contentType: recoveredContentType,
+            isInRecycleBin: true,
+            deletedDate: deletedDate
+        )
+        
+        Logger.recycleBin.info("成功恢复回收站项目: \(fileName)")
+        return mediaItem
     }
 } 
