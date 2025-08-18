@@ -18,7 +18,11 @@ enum ScrollDirection {
 }
 
 struct PaywallView: View {
-    var isFromOnboarding: Bool = false
+    let isFromOnboarding: Bool
+    
+    init(isFromOnboarding: Bool = false) {
+        self.isFromOnboarding = isFromOnboarding
+    }
     @State private var selectedPlan: SubscriptionPlan?
     @State private var showMainApp = false
     @State private var animateFeatures = false
@@ -32,6 +36,7 @@ struct PaywallView: View {
     @State private var successMessage = "" // 成功消息
     @State private var cachedPlans: [SubscriptionPlan] = [] // 缓存的订阅方案
     @State private var showingPrivacyPolicy = false // 显示隐私政策页面
+    @State private var showingTermsOfUse = false // 显示使用条款页面
     
     // 悬浮按钮相关状态
     @State private var scrollOffset: CGFloat = 0
@@ -217,6 +222,9 @@ struct PaywallView: View {
         .sheet(isPresented: $showingPrivacyPolicy) {
             PrivacyPolicyView()
         }
+        .sheet(isPresented: $showingTermsOfUse) {
+            TermsOfUseView()
+        }
         .onAppear {
             Logger.logPageNavigation(from: isFromOnboarding ? "Onboarding" : "More", to: "Paywall")
             startAnimations()
@@ -229,12 +237,20 @@ struct PaywallView: View {
                 await storeManager.loadProducts()
             }
             
-            // 设置默认选中的方案（年订阅）
-            if selectedPlan == nil {
-                cachedPlans = getPlansWithRealPrices()
-                if !cachedPlans.isEmpty {
-                    selectedPlan = cachedPlans[0] // 默认选择第一个方案（年订阅）
+            // 设置默认选中的方案（年订阅）- 确保年度计划被选中
+            cachedPlans = getPlansWithRealPrices()
+            // 查找年度计划（productIdentifier为"yearly_29.99"的计划）
+            if let yearlyPlan = cachedPlans.first(where: { $0.productIdentifier == "yearly_29.99" }) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    selectedPlan = yearlyPlan
                 }
+                Logger.subscription.info("默认选中年度订阅计划: \(yearlyPlan.title)")
+            } else if !cachedPlans.isEmpty {
+                // 如果找不到年度计划，选择第一个计划
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    selectedPlan = cachedPlans[0]
+                }
+                Logger.subscription.info("默认选中第一个订阅计划: \(cachedPlans[0].title)")
             }
             
             DispatchQueue.main.asyncAfter(deadline: .now() + 5) {
@@ -246,10 +262,18 @@ struct PaywallView: View {
         .onChange(of: storeManager.products) { _ in
             // 当产品加载完成时，更新选中的方案和价格
             cachedPlans = getPlansWithRealPrices()
-            if selectedPlan == nil {
-                if !cachedPlans.isEmpty {
+            // 确保年度计划被选中
+            if let yearlyPlan = cachedPlans.first(where: { $0.productIdentifier == "yearly_29.99" }) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    selectedPlan = yearlyPlan
+                }
+                Logger.subscription.info("产品加载完成，选中年度订阅计划: \(yearlyPlan.title)")
+            } else if !cachedPlans.isEmpty && selectedPlan == nil {
+                // 如果找不到年度计划且当前没有选中方案，选择第一个计划
+                withAnimation(.easeInOut(duration: 0.3)) {
                     selectedPlan = cachedPlans[0]
                 }
+                Logger.subscription.info("产品加载完成，选中第一个订阅计划: \(cachedPlans[0].title)")
             }
             // 强制刷新UI以显示最新价格
             uiRefreshTrigger.toggle()
@@ -422,7 +446,9 @@ struct PaywallView: View {
                             plan: plan,
                             isSelected: selectedPlan?.id == plan.id,
                             onSelect: {
-                                selectedPlan = plan
+                                withAnimation(.easeInOut(duration: 0.3)) {
+                                    selectedPlan = plan
+                                }
                                 Logger.subscription.info("选择订阅方案: \(plan.title)")
                             }
                         )
@@ -505,6 +531,14 @@ struct PaywallView: View {
                     // 直接显示隐私政策页面
                     Logger.ui.info("用户从Paywall点击隐私政策")
                     showingPrivacyPolicy = true
+                }
+                .font(.caption)
+                .foregroundColor(.seniorPrimary)
+                
+                Button("paywall.terms_of_use".localized) { 
+                    // 直接显示使用条款页面
+                    Logger.ui.info("用户从Paywall点击使用条款")
+                    showingTermsOfUse = true
                 }
                 .font(.caption)
                 .foregroundColor(.seniorPrimary)
@@ -775,14 +809,14 @@ struct SubscriptionPlanCard: View {
                                 isSelected ? Color.seniorPrimary : Color.gray.opacity(0.3),
                                 lineWidth: isSelected ? 2 : 1
                             )
-                            .scaleEffect(borderAnimation ? 1.05 : 1.0)
-                            .opacity(borderAnimation ? 0.8 : 1.0)
+                            .scaleEffect(borderAnimation ? 1.08 : 1.0)
+                            .opacity(borderAnimation ? 0.6 : 1.0)
                     )
                     .shadow(
-                        color: isSelected ? Color.seniorPrimary.opacity(0.2) : .gray.opacity(0.1),
-                        radius: isSelected ? 8 : 2,
+                        color: isSelected ? Color.seniorPrimary.opacity(0.3) : .gray.opacity(0.1),
+                        radius: isSelected ? 12 : 2,
                         x: 0,
-                        y: isSelected ? 4 : 1
+                        y: isSelected ? 6 : 1
                     )
             )
             .animation(animationEnabled ? .easeInOut(duration: 0.6).repeatForever(autoreverses: true) : .easeOut(duration: 0.2), value: borderAnimation)
@@ -815,5 +849,5 @@ struct ScrollOffsetPreferenceKey: PreferenceKey {
 }
 
 #Preview {
-    PaywallView()
+    PaywallView(isFromOnboarding: false)
 } 

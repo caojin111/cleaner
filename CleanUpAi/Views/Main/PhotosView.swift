@@ -106,7 +106,7 @@ struct PhotosView: View {
         }
         // Paywall弹窗
         .fullScreenCover(isPresented: $showPaywall) {
-            PaywallView()
+            PaywallView(isFromOnboarding: false)
         }
         // 评分弹窗
         .overlay(

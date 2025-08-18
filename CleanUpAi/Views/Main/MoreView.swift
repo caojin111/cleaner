@@ -13,6 +13,7 @@ import UserNotifications
 struct MoreView: View {
     @State private var showingPaywall = false
     @State private var showingPrivacyPolicy = false
+    @State private var showingTermsOfUse = false
     @State private var showingRestoreAlert = false
     @State private var restoreResultMessage = ""
     @State private var currentPlanType: String = "Yearly Plan"
@@ -55,6 +56,9 @@ struct MoreView: View {
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
             PrivacyPolicyView()
+        }
+        .sheet(isPresented: $showingTermsOfUse) {
+            TermsOfUseView()
         }
         .alert("more.restore_result".localized, isPresented: $showingRestoreAlert) {
             Button("more.ok".localized) { }
@@ -201,6 +205,17 @@ struct MoreView: View {
                 action: {
                     showingPrivacyPolicy = true
                     Logger.ui.debug("用户查看隐私政策")
+                }
+            )
+            
+            MoreMenuItem(
+                icon: "doc.text.fill",
+                title: "more.menu.terms_of_use".localized,
+                subtitle: nil,
+                color: .indigo,
+                action: {
+                    showingTermsOfUse = true
+                    Logger.ui.debug("用户查看使用条款")
                 }
             )
             

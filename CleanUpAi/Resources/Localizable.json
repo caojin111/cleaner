@@ -221,6 +221,7 @@
         "rate_us": "Rate Us",
         "contact_us": "Contact Us",
         "privacy_policy": "Privacy Policy",
+        "terms_of_use": "Terms of Use",
         "developer": "Developer",
         "version": "Version",
         "daily_reminder": {
@@ -520,6 +521,7 @@
         "rate_us": "给我们评分",
         "contact_us": "联系我们",
         "privacy_policy": "隐私政策",
+        "terms_of_use": "使用条款",
         "developer": "开发者",
         "version": "版本",
         "daily_reminder": {
