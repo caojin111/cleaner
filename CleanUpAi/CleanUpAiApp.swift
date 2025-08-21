@@ -37,6 +37,9 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         // 设置通知代理
         UNUserNotificationCenter.current().delegate = self
         
+        // 测试权限本地化
+        PermissionManager.shared.testPermissionLocalization()
+        
         return true
     }
     

@@ -17,7 +17,7 @@ struct RecycleBinView: View {
     @State private var isDeleting = false // 添加删除状态
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.seniorBackground.ignoresSafeArea()
                 

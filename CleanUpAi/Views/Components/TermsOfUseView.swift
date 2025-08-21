@@ -16,7 +16,7 @@ struct TermsOfUseView: View {
     @State private var htmlContent: String = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.white.ignoresSafeArea()
                 

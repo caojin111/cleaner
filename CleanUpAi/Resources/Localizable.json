@@ -33,7 +33,7 @@
         "gotosetting": "Go to setting",
         "not_set": "Not Set",
         "authorized": "Authorized",
-        "granted": "Granted",
+        "granted": "Continue",
         "requesting": "Requesting...",
         "title": "Permission Settings",
         "gotosetting": "Go to Settings",
@@ -157,7 +157,8 @@
       "deleting_photo": "Deleting photo...",
       "batch_deleting": "Batch deleting...",
       "start_free_trial": "Start Free Trial",
-      "subscribe_now": "Subscribe Now"
+      "subscribe_now": "Subscribe Now",
+      "view_recycle_bin": "View Recycle Bin"
     },
     "videos": {
       "title": "Video Cleaning",
@@ -297,6 +298,14 @@
       "loading": "Loading...",
       "error": "Error",
       "success": "Success"
+    },
+    "permissions": {
+      "photo_library_title": "CleanUp AI would like to access your Photo Library",
+      "photo_library_description": "This will allow you to swipe through the photos in your camera roll. Your photos remain 100% private and will never leave your device unless you choose to share them.",
+      "photo_library_add_title": "CleanUp AI needs access to your Photo Library",
+      "photo_library_add_description": "When a user swipes left, it means that the photo or video is not worth keeping. CleanUp AI needs access to use the app's recycle bin to manage unwanted pictures or videos. Once the user is sure they can delete them, help them delete the pictures or videos from the gallery. The deleted files will then be placed in the recycle bin on the user's phone, ensuring your important memories are preserved while removing duplicates.",
+      "notification_title": "CleanUp AI would like to send notifications",
+      "notification_description": "CleanUp AI sends notifications to remind you to clean your photos regularly and keep your device storage optimized."
     }
   },
   "zh": {
@@ -333,7 +342,7 @@
         "manual_select": "Manual Select",
         "not_set": "Not Set",
         "authorized": "Authorize",
-        "granted": "Granted",
+        "granted": "下一步",
         "requesting": "Requesting...",
         "title": "权限设置",
         "gotosetting": "去设置",
@@ -457,7 +466,8 @@
       "deleting_photo": "正在删除图片...",
       "batch_deleting": "正在批量删除...",
       "start_free_trial": "开始免费试用",
-      "subscribe_now": "立即订阅"
+      "subscribe_now": "立即订阅",
+      "view_recycle_bin": "查看回收站"
     },
     "videos": {
       "title": "视频清理",
@@ -597,6 +607,14 @@
       "loading": "加载中...",
       "error": "错误",
       "success": "成功"
+    },
+    "permissions": {
+      "photo_library_title": "CleanUp AI 需要访问您的照片库",
+      "photo_library_description": "为了扫描重复照片和视频，识别相似图片，并帮助您安全删除不必要的文件以释放存储空间，我们需要访问您的照片库。例如，我们可以检测同一场景的多张照片、自拍或重复截图，并以卡片形式展示，用户可以左右滑动。左滑删除，右滑保留。",
+      "photo_library_add_title": "CleanUp AI 需要访问照片库",
+      "photo_library_add_description": "当用户左滑时，表示该照片或视频不值得保留。CleanUp AI 需要访问权限来使用应用的回收站管理不需要的图片或视频。一旦用户确认可以删除，帮助用户从相册中删除图片或视频。删除的文件将放置在用户手机上的回收站中，确保您的重要回忆得到保护，同时删除重复文件。",
+      "notification_title": "CleanUp AI 需要发送通知",
+      "notification_description": "CleanUp AI 发送通知是为了提醒您定期清理照片，保持设备存储空间优化。"
     }
   }
 } 

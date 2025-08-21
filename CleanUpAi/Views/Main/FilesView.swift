@@ -9,7 +9,7 @@ import SwiftUI
 
 struct FilesView: View {
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 Spacer()
                 

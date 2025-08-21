@@ -1,0 +1,12 @@
+/* 
+  InfoPlist.strings
+  CleanUpAi
+  
+  Created by CleanU AI Team
+*/
+
+"NSPhotoLibraryUsageDescription" = "CleanUp AI 需要访问您的照片库。这将允许您浏览相机胶卷中的照片。您的照片保持100%私密，除非您选择分享，否则永远不会离开您的设备。";
+
+"NSPhotoLibraryAddUsageDescription" = "CleanUp AI 需要访问照片库。当用户左滑时，表示该照片或视频不值得保留。CleanUp AI 需要访问权限来使用应用的回收站管理不需要的图片或视频。一旦用户确认可以删除，帮助用户从相册中删除图片或视频。删除的文件将放置在用户手机上的回收站中，确保您的重要回忆得到保护，同时删除重复文件。";
+
+"NSUserNotificationsUsageDescription" = "CleanUp AI 需要发送通知。CleanUp AI 发送通知是为了提醒您定期清理照片，保持设备存储空间优化。";

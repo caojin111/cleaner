@@ -61,4 +61,12 @@ extension Logger {
     static func logError(_ error: Error, context: String) {
         Logger(subsystem: subsystem, category: "Error").error("❌ 错误[\(context)]: \(error.localizedDescription)")
     }
+    
+    static func logInfo(_ message: String) {
+        ui.info("ℹ️ \(message)")
+    }
+    
+    static func logError(_ message: String) {
+        ui.error("❌ \(message)")
+    }
 } 

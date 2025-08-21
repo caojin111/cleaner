@@ -26,7 +26,7 @@ struct MoreView: View {
     @StateObject private var notificationManager = NotificationManager.shared
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.seniorBackground.ignoresSafeArea()
                 
@@ -529,7 +529,7 @@ struct SupportUsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 Image(systemName: "heart.circle.fill")
                     .font(.system(size: 80))
@@ -572,7 +572,7 @@ struct PrivacyPolicyView: View {
     @State private var htmlContent: String = ""
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             ZStack {
                 Color.white.ignoresSafeArea()
                 
@@ -867,7 +867,7 @@ struct ContactUsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack(spacing: 30) {
                 Image(systemName: "envelope.circle.fill")
                     .font(.system(size: 80))

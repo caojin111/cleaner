@@ -40,7 +40,7 @@ struct Constants {
         static let page1Subtitle = "智能分析，提升手机性能"
         
         static let page2Title = "onboarding.page2.title".localized
-        static let page2Button = "onboarding.page2.granted".localized
+        static let page2Button = "onboarding.page2.continue".localized
         
         static let page3Title = "年度图片回顾"
         static let page3Subtitle = "智能分析您的照片收藏"

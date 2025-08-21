@@ -38,22 +38,7 @@ struct VideosView: View {
                             .onAppear {
                                 Logger.ui.debug("视频页状态栏安全区域高度: \(geometry.safeAreaInsets.top)")
                             }
-                        // 设置按钮区域 - 仅在有重复视频且非分析状态显示
-                        if !videoAnalyzer.isAnalyzing && (currentItemIndex < videoAnalyzer.foundDuplicates.count && !videoAnalyzer.foundDuplicates.isEmpty) {
-                        HStack {
-                            Spacer()
-                            Button(action: {
-                                // TODO: 打开设置（如有视频设置页可跳转，否则可复用照片设置页）
-                                Logger.ui.debug("用户点击视频设置按钮")
-                            }) {
-                                Image(systemName: "gearshape.fill")
-                                    .font(.title3)
-                                    .foregroundColor(.seniorPrimary)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 15)
-                        }
+                        // 移除设置按钮区域
                     }
                     // 主要内容
                     Group {
@@ -81,6 +66,7 @@ struct VideosView: View {
                 }
             }
         }
+        .navigationBarHidden(true)
         .onAppear {
             startAnalysisIfNeeded()
             startCacheStatusMonitoring()

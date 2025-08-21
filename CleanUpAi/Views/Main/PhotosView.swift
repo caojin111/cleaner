@@ -16,7 +16,6 @@ struct PhotosView: View {
     @StateObject private var recycleBinManager = RecycleBinManager.shared
     @State private var currentItemIndex = 0
     @State private var showingAnalysis = false
-    @State private var showingSettings = false
     @State private var isProcessingSwipe = false // 防止连续滑动
     @Binding var selectedTab: Int
     @State private var showPaywall = false // 新增：Paywall弹窗
@@ -41,33 +40,7 @@ struct PhotosView: View {
                                 Logger.ui.debug("状态栏安全区域高度: \(geometry.safeAreaInsets.top)")
                             }
                         
-                        // 设置按钮区域 - 仅在有重复照片且非分析状态显示
-                        if !photoAnalyzer.isAnalyzing && (currentItemIndex < photoAnalyzer.foundDuplicates.count && !photoAnalyzer.foundDuplicates.isEmpty) {
-                        HStack {
-                            // 调试按钮（仅在开发环境显示）
-                            #if DEBUG
-                            Button(action: {
-                                showPhotoDetails()
-                            }) {
-                                Image(systemName: "info.circle")
-                                    .font(.title3)
-                                    .foregroundColor(.blue)
-                            }
-                            #endif
-                            
-                            Spacer()
-                            Button(action: {
-                                showingSettings = true
-                                Logger.ui.debug("用户点击设置按钮")
-                            }) {
-                                Image(systemName: "gearshape.fill")
-                                    .font(.title3)
-                                    .foregroundColor(.seniorPrimary)
-                            }
-                        }
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 15) // 增加垂直padding
-                        }
+                        // 移除设置按钮区域
                     }
                     
                     // 主要内容
@@ -97,13 +70,12 @@ struct PhotosView: View {
                 }
             }
         }
+        .navigationBarHidden(true)
         .onAppear {
             startAnalysisIfNeeded()
             Logger.ui.debug("PhotosView 已显示，开始检查分析状态")
         }
-        .sheet(isPresented: $showingSettings) {
-            SettingsView()
-        }
+
         // Paywall弹窗
         .fullScreenCover(isPresented: $showPaywall) {
             PaywallView(isFromOnboarding: false)
@@ -440,7 +412,7 @@ struct PhotosView: View {
                     .foregroundColor(.seniorText)
             }
             
-            Button("查看回收站") {
+            Button("photos.view_recycle_bin".localized) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     selectedTab = 2 // 回收站Tab的索引（更新后的位置）
                 }
@@ -883,7 +855,7 @@ struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Text("photos.settings".localized)
                     .font(.seniorTitle)

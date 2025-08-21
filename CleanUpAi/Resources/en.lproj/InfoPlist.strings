@@ -1,0 +1,12 @@
+/* 
+  InfoPlist.strings
+  CleanUpAi
+  
+  Created by CleanU AI Team
+*/
+
+"NSPhotoLibraryUsageDescription" = "This will allow you to swipe through the photos in your camera roll. Your photos remain 100% private and will never leave your device unless you choose to share them.";
+
+"NSPhotoLibraryAddUsageDescription" = "CleanUp AI needs access to your Photo Library. When a user swipes left, it means that the photo or video is not worth keeping. CleanUp AI needs access to use the app's recycle bin to manage unwanted pictures or videos. Once the user is sure they can delete them, help them delete the pictures or videos from the gallery. The deleted files will then be placed in the recycle bin on the user's phone, ensuring your important memories are preserved while removing duplicates.";
+
+"NSUserNotificationsUsageDescription" = "CleanUp AI sends notifications to remind you to clean your photos regularly and keep your device storage optimized.";
