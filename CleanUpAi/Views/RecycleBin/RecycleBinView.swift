@@ -292,7 +292,7 @@ struct RecycleBinItemRow: View {
                             .padding(.vertical, 8)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.seniorSuccess.opacity(0.9))
+                                    .fill(Color.modernRestore.opacity(0.9))
                             )
                         }
                         .buttonStyle(PlainButtonStyle())
@@ -311,7 +311,7 @@ struct RecycleBinItemRow: View {
                             .padding(.vertical, 8)
                             .background(
                                 RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.seniorDanger.opacity(0.9))
+                                    .fill(Color.modernDelete.opacity(0.9))
                             )
                         }
                         .buttonStyle(PlainButtonStyle())

@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1814291E2E5C68EC006D3856 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = 1814291D2E5C68EC006D3856 /* FirebaseAnalytics */; };
+		181429202E5C68FE006D3856 /* FirebaseRemoteConfig in Frameworks */ = {isa = PBXBuildFile; productRef = 1814291F2E5C68FE006D3856 /* FirebaseRemoteConfig */; };
+		181429222E5C6903006D3856 /* FirebaseDatabase in Frameworks */ = {isa = PBXBuildFile; productRef = 181429212E5C6903006D3856 /* FirebaseDatabase */; };
+		181429242E5C690F006D3856 /* FirebaseInAppMessaging-Beta in Frameworks */ = {isa = PBXBuildFile; productRef = 181429232E5C690F006D3856 /* FirebaseInAppMessaging-Beta */; };
 		1859283D2E3A01430087F4F4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1859283C2E3A01430087F4F4 /* GoogleService-Info.plist */; };
 		1859283E2E3A01430087F4F4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1859283C2E3A01430087F4F4 /* GoogleService-Info.plist */; };
 		1859283F2E3A01430087F4F4 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 1859283C2E3A01430087F4F4 /* GoogleService-Info.plist */; };
@@ -73,7 +77,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				181429202E5C68FE006D3856 /* FirebaseRemoteConfig in Frameworks */,
+				1814291E2E5C68EC006D3856 /* FirebaseAnalytics in Frameworks */,
+				181429222E5C6903006D3856 /* FirebaseDatabase in Frameworks */,
 				185928432E3A0D9C0087F4F4 /* FirebaseCore in Frameworks */,
+				181429242E5C690F006D3856 /* FirebaseInAppMessaging-Beta in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -144,6 +152,10 @@
 			name = CleanUpAi;
 			packageProductDependencies = (
 				185928422E3A0D9C0087F4F4 /* FirebaseCore */,
+				1814291D2E5C68EC006D3856 /* FirebaseAnalytics */,
+				1814291F2E5C68FE006D3856 /* FirebaseRemoteConfig */,
+				181429212E5C6903006D3856 /* FirebaseDatabase */,
+				181429232E5C690F006D3856 /* FirebaseInAppMessaging-Beta */,
 			);
 			productName = CleanUpAi;
 			productReference = 188C021B2E1F6F840080344D /* CleanUpAi.app */;
@@ -457,7 +469,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = CleanUpAi.CleanUpAi;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -504,7 +516,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 				MACOSX_DEPLOYMENT_TARGET = 15.4;
-				MARKETING_VERSION = 1.0.0;
+				MARKETING_VERSION = 1.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = CleanUpAi.CleanUpAi;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
@@ -661,6 +673,26 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		1814291D2E5C68EC006D3856 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 185928402E3A01D10087F4F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		1814291F2E5C68FE006D3856 /* FirebaseRemoteConfig */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 185928402E3A01D10087F4F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseRemoteConfig;
+		};
+		181429212E5C6903006D3856 /* FirebaseDatabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 185928402E3A01D10087F4F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseDatabase;
+		};
+		181429232E5C690F006D3856 /* FirebaseInAppMessaging-Beta */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 185928402E3A01D10087F4F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseInAppMessaging-Beta";
+		};
 		185928422E3A0D9C0087F4F4 /* FirebaseCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 185928402E3A01D10087F4F4 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

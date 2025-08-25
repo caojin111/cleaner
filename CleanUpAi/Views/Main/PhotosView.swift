@@ -30,17 +30,15 @@ struct PhotosView: View {
                 Color.seniorBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // 顶部安全区域适配 + 设置按钮
+                    // 顶部安全区域适配 + 额外间距
                     VStack(spacing: 0) {
-                        // 状态栏安全区域
+                        // 状态栏安全区域 + 额外顶部间距
                         Rectangle()
                             .fill(Color.clear)
-                            .frame(height: geometry.safeAreaInsets.top)
+                            .frame(height: geometry.safeAreaInsets.top + 40) // 统一顶部间距，适配iPhone 15 Pro
                             .onAppear {
-                                Logger.ui.debug("状态栏安全区域高度: \(geometry.safeAreaInsets.top)")
+                                Logger.ui.debug("状态栏安全区域高度: \(geometry.safeAreaInsets.top), 额外间距: 40")
                             }
-                        
-                        // 移除设置按钮区域
                     }
                     
                     // 主要内容
@@ -53,7 +51,7 @@ struct PhotosView: View {
                             mainContentWithoutButtons
                         }
                     }
-                    .frame(maxHeight: geometry.size.height - geometry.safeAreaInsets.bottom - geometry.safeAreaInsets.top - 200)
+                    .frame(maxHeight: geometry.size.height - geometry.safeAreaInsets.bottom - geometry.safeAreaInsets.top - 200) // 统一主内容区域高度
                     .id(pageResetKey) // 强制刷新主内容
                     
                     Spacer()
@@ -193,9 +191,9 @@ struct PhotosView: View {
                 statsHeader
             }
             
-            // 卡片区域 - 固定合理高度
+            // 卡片区域 - 统一高度设置
             cardStackView
-                .frame(maxHeight: 380) // 固定最大高度，确保按钮有空间
+                .frame(maxHeight: 350) // 统一卡片高度
             
             Spacer() // 弹性空间
             
@@ -216,10 +214,10 @@ struct PhotosView: View {
                 statsHeader
             }
             
-            // 卡片区域 - 扩大高度以利用更多空间
+            // 卡片区域 - 统一高度设置
             cardStackView
-                .frame(maxHeight: 500) // 调整高度，为向下移动的按钮预留空间
-                .offset(y: 10) // 图片预览区域下移10像素
+                .frame(maxHeight: 450) // 统一卡片高度
+                .offset(y: 5) // 统一偏移距离
             
             Spacer() // 弹性空间
         }
@@ -234,7 +232,7 @@ struct PhotosView: View {
                     title: "photos.duplicate_photos".localized,
                     value: "\(photoAnalyzer.foundDuplicates.count)",
                     icon: "photo.stack",
-                    color: .orange
+                    color: .purple
                 )
                 
                 CompactStatCard(
@@ -274,9 +272,9 @@ struct PhotosView: View {
                 .accentColor(.seniorPrimary)
                 .padding(.horizontal, 16) // 恢复到合适的padding
         }
-        .padding(.top, 25) // 调整顶部间距，确保在安全区域内
-        .padding(.horizontal, 16) // 恢复水平padding
-        .padding(.bottom, 15) // 增加底部padding提升美观性
+        .padding(.top, 25) // 统一顶部间距，适配iPhone 15 Pro
+        .padding(.horizontal, 16) // 统一水平padding
+        .padding(.bottom, 12) // 统一底部间距
         .background(
             Color.white
                 .clipShape(
@@ -348,7 +346,7 @@ struct PhotosView: View {
             ActionButton(
                 icon: "trash.fill",
                 title: "photos.delete".localized,
-                color: .seniorDanger,
+                color: .modernDelete,
                 action: {
                     if currentItemIndex < photoAnalyzer.foundDuplicates.count && !isProcessingSwipe {
                         handleDelete(photoAnalyzer.foundDuplicates[currentItemIndex])
@@ -362,7 +360,7 @@ struct PhotosView: View {
             ActionButton(
                 icon: "heart.fill",
                 title: "photos.keep".localized,
-                color: .seniorSuccess,
+                color: .modernKeep,
                 action: {
                     if currentItemIndex < photoAnalyzer.foundDuplicates.count && !isProcessingSwipe {
                         handleKeep(photoAnalyzer.foundDuplicates[currentItemIndex])
@@ -376,7 +374,7 @@ struct PhotosView: View {
         .padding(.top, 16)
         .padding(.bottom, 16)
         .onAppear {
-            Logger.ui.debug("操作按钮已显示: 按钮尺寸=72x72, 位置偏移=65像素")
+            Logger.ui.debug("操作按钮已显示: 按钮尺寸=80x80, 使用高级设计配色方案")
         }
     }
     
@@ -673,16 +671,16 @@ struct SwipeablePhotoCard: View {
             // 左滑删除指示器
             if offset.width < -Constants.swipeHintThreshold {
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.seniorDanger, lineWidth: 3)
+                    .stroke(Color.modernDelete, lineWidth: 3)
                     .overlay(
                         VStack {
                             Image(systemName: "trash.fill")
                                 .font(.largeTitle)
-                                .foregroundColor(.seniorDanger)
+                                .foregroundColor(.modernDelete)
                             Text("photos.delete".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
-                                .foregroundColor(.seniorDanger)
+                                .foregroundColor(.modernDelete)
                         }
                     )
                     .opacity(min(abs(offset.width) / Constants.swipeThreshold, 1.0))
@@ -691,16 +689,16 @@ struct SwipeablePhotoCard: View {
             // 右滑保留指示器
             if offset.width > Constants.swipeHintThreshold {
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.seniorSuccess, lineWidth: 3)
+                    .stroke(Color.modernKeep, lineWidth: 3)
                     .overlay(
                         VStack {
                             Image(systemName: "heart.fill")
                                 .font(.largeTitle)
-                                .foregroundColor(.seniorSuccess)
+                                .foregroundColor(.modernKeep)
                             Text("photos.keep".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
-                                .foregroundColor(.seniorSuccess)
+                                .foregroundColor(.modernKeep)
                         }
                     )
                     .opacity(min(offset.width / Constants.swipeThreshold, 1.0))
@@ -821,33 +819,7 @@ struct StatCard: View {
     }
 }
 
-struct ActionButton: View {
-    let icon: String
-    let title: String
-    let color: Color
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 7) { // 从8缩小到7，保持比例
-                Image(systemName: icon)
-                    .font(.title3) // 从.title2缩小到.title3
-                    .foregroundColor(.white)
-                
-                Text(title)
-                    .font(.caption) // 从.seniorCaption缩小到.caption
-                    .fontWeight(.semibold)
-                    .foregroundColor(.white)
-            }
-            .frame(width: 72, height: 72) // 从80x80缩小10%到72x72
-            .background(
-                Circle()
-                    .fill(color)
-                    .shadow(color: color.opacity(0.3), radius: 7, x: 0, y: 3) // 阴影也相应缩小
-            )
-        }
-    }
-}
+
 
 // MARK: - Settings View (Placeholder)
 

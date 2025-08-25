@@ -17,10 +17,10 @@ struct MoreView: View {
     @State private var showingRestoreAlert = false
     @State private var restoreResultMessage = ""
     @State private var currentPlanType: String = "Yearly Plan"
-    @State private var isNotificationEnabled = false
     @State private var showingNotificationAlert = false
     @State private var notificationAlertMessage = ""
     @State private var isInitialized = false // 防止初始化时的onChange触发
+    @State private var hasShownNotificationResult = false // 防止重复显示通知结果弹窗
     @StateObject private var storeManager = StoreKitManager.shared
     @StateObject private var userSettings = UserSettingsManager.shared
     @StateObject private var notificationManager = NotificationManager.shared
@@ -75,9 +75,16 @@ struct MoreView: View {
             if userSettings.isSubscribed {
                 loadCurrentPlanType()
             }
-            checkNotificationStatus()
-            
-
+            // 只在第一次进入时检查通知状态
+            if !isInitialized {
+                checkNotificationStatus()
+            }
+        }
+        .onDisappear {
+            // 离开页面时重置通知结果状态，为下次进入做准备
+            hasShownNotificationResult = false
+            showingNotificationAlert = false // 重置弹窗状态
+            Logger.ui.debug("MoreView: 离开页面，重置通知结果状态")
         }
         .onChange(of: showingPrivacyPolicy) { newValue in
             if newValue {
@@ -193,7 +200,7 @@ struct MoreView: View {
                 title: getDailyReminderTitle(),
                 subtitle: getDailyReminderSubtitle(),
                 color: .orange,
-                isOn: $isNotificationEnabled,
+                isOn: $userSettings.isNotificationEnabled,
                 onToggle: handleDailyReminderToggle
             )
             
@@ -294,18 +301,13 @@ struct MoreView: View {
             
             await MainActor.run {
                 let newStatus = permissionStatus == .authorized && isScheduled
-                Logger.ui.info("通知状态检查完成: 权限=\(permissionStatus.rawValue), 已设置=\(isScheduled), 新状态=\(newStatus), 当前状态=\(isNotificationEnabled)")
+                Logger.ui.info("通知状态初始化: 权限=\(permissionStatus.rawValue), 已设置=\(isScheduled), 状态=\(newStatus)")
                 
-                // 只有当状态真正改变时才更新，避免不必要的onChange触发
-                if isNotificationEnabled != newStatus {
-                    isNotificationEnabled = newStatus
-                    Logger.ui.debug("通知状态已更新: \(newStatus)")
-                }
-                
-                // 标记为已初始化
+                // 只在第一次启动时检查系统状态，然后保存到UserSettingsManager
                 if !isInitialized {
+                    userSettings.isNotificationEnabled = newStatus
                     isInitialized = true
-                    Logger.ui.debug("MoreView通知状态初始化完成")
+                    Logger.ui.debug("MoreView通知状态初始化完成: \(newStatus)")
                 }
             }
         }
@@ -318,12 +320,12 @@ struct MoreView: View {
             return
         }
         
-        // 获取切换前的状态，因为isNotificationEnabled已经被Toggle改变了
-        let wasEnabled = !isNotificationEnabled
-        Logger.ui.info("用户切换每日提醒设置，从 \(wasEnabled) 切换到 \(isNotificationEnabled)")
+        // 获取切换前的状态，因为userSettings.isNotificationEnabled已经被Toggle改变了
+        let wasEnabled = !userSettings.isNotificationEnabled
+        Logger.ui.info("用户主动切换每日提醒设置，从 \(wasEnabled) 切换到 \(userSettings.isNotificationEnabled)")
         
         Task {
-            if isNotificationEnabled {
+            if userSettings.isNotificationEnabled {
                 // 用户想要开启提醒
                 Logger.ui.debug("尝试开启每日提醒")
                 let granted = await notificationManager.requestNotificationPermission()
@@ -333,17 +335,19 @@ struct MoreView: View {
                         Task {
                             await notificationManager.scheduleDailyCleanupReminder()
                             await MainActor.run {
-                                isNotificationEnabled = true
+                                userSettings.isNotificationEnabled = true
                                 notificationAlertMessage = "more.notification_enabled".localized
                                 showingNotificationAlert = true
+                                hasShownNotificationResult = true
                                 Logger.ui.info("每日提醒已开启")
                             }
                         }
                     } else {
                         // 权限被拒绝，恢复开关状态
-                        isNotificationEnabled = false
+                        userSettings.isNotificationEnabled = false
                         notificationAlertMessage = "more.notification_permission_denied".localized
                         showingNotificationAlert = true
+                        hasShownNotificationResult = true
                         Logger.ui.warning("通知权限被拒绝")
                     }
                 }
@@ -352,9 +356,10 @@ struct MoreView: View {
                 Logger.ui.debug("尝试关闭每日提醒")
                 await notificationManager.removeDailyCleanupReminder()
                 await MainActor.run {
-                    isNotificationEnabled = false
+                    userSettings.isNotificationEnabled = false
                     notificationAlertMessage = "more.notification_disabled".localized
                     showingNotificationAlert = true
+                    hasShownNotificationResult = true
                     Logger.ui.info("每日提醒已关闭")
                 }
             }
@@ -375,7 +380,7 @@ struct MoreView: View {
         
         Logger.ui.debug("Daily reminder subtitle - enabled: '\(enabledText)', disabled: '\(disabledText)'")
         
-        return isNotificationEnabled ? enabledText : disabledText
+        return userSettings.isNotificationEnabled ? enabledText : disabledText
     }
     
     private func getDailyReminderTitle() -> String {

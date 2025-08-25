@@ -103,7 +103,7 @@ struct SwipeableVideoCard: View {
                 .foregroundColor(.seniorSecondary)
                 
                 if item.isDuplicate {
-                    Text("photos.similarity".localized(Int(item.similarityScore * 100)))
+                    Text("videos.similarity".localized(Int(item.similarityScore * 100)))
                         .font(.seniorCaption)
                         .fontWeight(.semibold)
                         .foregroundColor(.orange)
@@ -228,16 +228,16 @@ struct SwipeableVideoCard: View {
             // 左滑删除指示器
             if offset.width < -Constants.swipeHintThreshold {
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.seniorDanger, lineWidth: 3)
+                    .stroke(Color.modernDelete, lineWidth: 3)
                     .overlay(
                         VStack {
                             Image(systemName: "trash.fill")
                                 .font(.largeTitle)
-                                .foregroundColor(.seniorDanger)
-                            Text("photos.delete".localized)
+                                .foregroundColor(.modernDelete)
+                            Text("videos.delete".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
-                                .foregroundColor(.seniorDanger)
+                                .foregroundColor(.modernDelete)
                         }
                     )
                     .opacity(min(abs(offset.width) / Constants.swipeThreshold, 1.0))
@@ -246,16 +246,16 @@ struct SwipeableVideoCard: View {
             // 右滑保留指示器
             if offset.width > Constants.swipeHintThreshold {
                 RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color.seniorSuccess, lineWidth: 3)
+                    .stroke(Color.modernKeep, lineWidth: 3)
                     .overlay(
                         VStack {
                             Image(systemName: "heart.fill")
                                 .font(.largeTitle)
-                                .foregroundColor(.seniorSuccess)
-                            Text("photos.keep".localized)
+                                .foregroundColor(.modernKeep)
+                            Text("videos.keep".localized)
                                 .font(.seniorBody)
                                 .fontWeight(.bold)
-                                .foregroundColor(.seniorSuccess)
+                                .foregroundColor(.modernKeep)
                         }
                     )
                     .opacity(min(offset.width / Constants.swipeThreshold, 1.0))

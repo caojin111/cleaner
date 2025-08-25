@@ -38,6 +38,14 @@ class UserSettingsManager: ObservableObject {
     @Published var shouldShowRating: Bool = false
     @Published var shouldShowThankYou: Bool = false
     
+    // 推送通知开关状态
+    @Published var isNotificationEnabled: Bool {
+        didSet {
+            UserDefaults.standard.set(self.isNotificationEnabled, forKey: "isNotificationEnabled")
+            Logger.analytics.info("推送通知开关状态已更新: \(self.isNotificationEnabled)")
+        }
+    }
+    
     var todaySwipeCount: Int {
         get {
             let today = Self.dateString(Date())
@@ -143,7 +151,10 @@ class UserSettingsManager: ObservableObject {
         // 初始化感谢弹窗状态
         self.shouldShowThankYou = UserDefaults.standard.bool(forKey: shouldShowThankYouKey)
         
-        Logger.analytics.info("UserSettingsManager初始化 - hasKey: \(hasKey), isFirstLaunch: \(self.isFirstLaunch)")
+        // 初始化推送通知开关状态
+        self.isNotificationEnabled = UserDefaults.standard.bool(forKey: "isNotificationEnabled")
+        
+        Logger.analytics.info("UserSettingsManager初始化 - hasKey: \(hasKey), isFirstLaunch: \(self.isFirstLaunch), isNotificationEnabled: \(self.isNotificationEnabled)")
     }
     
     /// 标记用户已完成首次启动流程

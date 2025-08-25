@@ -29,16 +29,15 @@ struct VideosView: View {
                 Color.seniorBackground.ignoresSafeArea()
                 
                 VStack(spacing: 0) {
-                    // 顶部安全区域适配 + 设置按钮
+                    // 顶部安全区域适配 + 额外间距
                     VStack(spacing: 0) {
-                        // 状态栏安全区域
+                        // 状态栏安全区域 + 额外顶部间距
                         Rectangle()
                             .fill(Color.clear)
-                            .frame(height: geometry.safeAreaInsets.top)
+                            .frame(height: geometry.safeAreaInsets.top + 40) // 统一顶部间距，适配iPhone 15 Pro
                             .onAppear {
-                                Logger.ui.debug("视频页状态栏安全区域高度: \(geometry.safeAreaInsets.top)")
+                                Logger.ui.debug("视频页状态栏安全区域高度: \(geometry.safeAreaInsets.top), 额外间距: 40")
                             }
-                        // 移除设置按钮区域
                     }
                     // 主要内容
                     Group {
@@ -50,7 +49,7 @@ struct VideosView: View {
                             mainContentWithoutButtons
                         }
                     }
-                    .frame(maxHeight: geometry.size.height - geometry.safeAreaInsets.bottom - geometry.safeAreaInsets.top - 200)
+                    .frame(maxHeight: geometry.size.height - geometry.safeAreaInsets.bottom - geometry.safeAreaInsets.top - 200) // 统一主内容区域高度
                     .id(pageResetKey) // 强制刷新主内容
                     Spacer()
                 }
@@ -195,8 +194,8 @@ struct VideosView: View {
             
             // 卡片区域
             cardStackView
-                .frame(maxHeight: 500)
-                .offset(y: 10)
+                .frame(maxHeight: 450) // 统一卡片高度，与PhotosView保持一致
+                .offset(y: 5) // 统一偏移距离，与PhotosView保持一致
             
             Spacer()
         }
@@ -207,14 +206,14 @@ struct VideosView: View {
     private var statsHeader: some View {
         VStack(spacing: 8) {
             HStack(spacing: 15) {
-                CompactVideoStatCard(
+                CompactStatCard(
                     title: "videos.duplicate_videos".localized,
                     value: "\(videoAnalyzer.foundDuplicates.count)",
                     icon: "video.badge.plus",
                     color: .purple
                 )
                 
-                CompactVideoStatCard(
+                CompactStatCard(
                     title: "videos.space_savings".localized,
                     value: ByteCountFormatter.string(fromByteCount: videoAnalyzer.estimatedSpaceSavings(), countStyle: .file),
                     icon: "externaldrive.badge.minus",
@@ -253,9 +252,9 @@ struct VideosView: View {
             
             // 缓存状态指示器
         }
-        .padding(.top, 25)
+        .padding(.top, 25) // 统一顶部间距，适配iPhone 15 Pro
         .padding(.horizontal, 16)
-        .padding(.bottom, 15)
+        .padding(.bottom, 12) // 统一底部间距
         .background(
             Color.white
                 .clipShape(
@@ -331,7 +330,7 @@ struct VideosView: View {
             ActionButton(
                 icon: "trash.fill",
                 title: "videos.delete".localized,
-                color: .seniorDanger,
+                color: .modernDelete,
                 action: {
                     let duplicates = videoAnalyzer.foundDuplicates
                     if currentItemIndex < duplicates.count && !isProcessingSwipe {
@@ -346,7 +345,7 @@ struct VideosView: View {
             ActionButton(
                 icon: "heart.fill",
                 title: "videos.keep".localized,
-                color: .seniorSuccess,
+                color: .modernKeep,
                 action: {
                     let duplicates = videoAnalyzer.foundDuplicates
                     if currentItemIndex < duplicates.count && !isProcessingSwipe {
@@ -361,7 +360,7 @@ struct VideosView: View {
         .padding(.top, 16)
         .padding(.bottom, 16)
         .onAppear {
-            Logger.video.debug("视频操作按钮已显示: 按钮尺寸=72x72, 位置偏移=65像素")
+            Logger.video.debug("视频操作按钮已显示: 按钮尺寸=80x80, 使用高级设计配色方案")
         }
     }
     
@@ -511,40 +510,7 @@ struct VideosView: View {
     }
 }
 
-// MARK: - Compact Video Stat Card
-
-struct CompactVideoStatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-    
-    var body: some View {
-        VStack(spacing: 4) {
-            Image(systemName: icon)
-                .font(.body)
-                .foregroundColor(color)
-            
-            Text(value)
-                .font(.subheadline)
-                .fontWeight(.bold)
-                .foregroundColor(.seniorText)
-                .lineLimit(1)
-                .minimumScaleFactor(0.7)
-            
-            Text(title)
-                .font(.caption2)
-                .foregroundColor(.seniorSecondary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 8)
-        .padding(.horizontal, 10)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(color.opacity(0.06))
-        )
-    }
-}
+// 使用PhotosView中的CompactStatCard，保持UI一致性
 
 #Preview {
     VideosView()
