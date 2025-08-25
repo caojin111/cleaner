@@ -73,6 +73,17 @@ struct PhotosView: View {
             startAnalysisIfNeeded()
             Logger.ui.debug("PhotosView 已显示，开始检查分析状态")
         }
+        .onReceive(NotificationCenter.default.publisher(for: RecycleBinManager.itemRestoredNotification)) { notification in
+            Logger.ui.info("收到回收站恢复通知，准备刷新照片分析与界面")
+            Task {
+                await photoAnalyzer.startAnalysis()
+                await MainActor.run {
+                    currentItemIndex = 0
+                    pageResetKey = UUID()
+                    Logger.ui.info("PhotosView 已刷新到最新状态，恢复滑动界面")
+                }
+            }
+        }
 
         // Paywall弹窗
         .fullScreenCover(isPresented: $showPaywall) {

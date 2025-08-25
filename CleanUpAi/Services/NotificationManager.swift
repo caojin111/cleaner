@@ -59,7 +59,8 @@ class NotificationManager: ObservableObject {
         content.title = "CleanUp AI"
         content.body = "Time for daily cleanup! Keep your device running smoothly."
         content.sound = .default
-        content.badge = 1
+        // 不再强制设置角标，避免图标上长期显示红点
+        // 如需显示角标，可在此计算未处理事项数量后赋值
         
         // 添加应用图标作为附件（如果可能）
         if let attachment = createNotificationAttachment() {
@@ -149,6 +150,16 @@ class NotificationManager: ObservableObject {
         await UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         
         logger.info("所有通知已清除")
+    }
+
+    // MARK: - 清零角标与已送达通知
+    func clearBadgeAndDeliveredNotifications() async {
+        await MainActor.run {
+            UIApplication.shared.applicationIconBadgeNumber = 0
+            logger.info("应用角标已清零")
+        }
+        await UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        logger.info("已送达通知已清除")
     }
     
     // MARK: - 发送测试通知

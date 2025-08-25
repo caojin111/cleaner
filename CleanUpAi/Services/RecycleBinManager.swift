@@ -15,6 +15,9 @@ import UserNotifications
 class RecycleBinManager: ObservableObject {
     static let shared = RecycleBinManager()
     
+    // 恢复通知，供界面监听以刷新状态
+    static let itemRestoredNotification = Notification.Name("RecycleBinItemRestored")
+    
     @Published var items: [MediaItem] = []
     @Published var totalDeletedSize: Int64 = 0
     
@@ -69,6 +72,10 @@ class RecycleBinManager: ObservableObject {
         self.items.removeAll { $0.id == item.id }
         self.updateTotalSize()
         self.saveToUserDefaults()
+        
+        // 发送恢复通知，触发相关视图刷新
+        NotificationCenter.default.post(name: RecycleBinManager.itemRestoredNotification, object: item)
+        Logger.recycleBin.info("已发送恢复通知: \(item.fileName)")
     }
     
     func permanentlyDelete(_ item: MediaItem) async {

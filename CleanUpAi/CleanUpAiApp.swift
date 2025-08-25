@@ -22,6 +22,9 @@ struct CleanUpAiApp: App {
     var body: some Scene {
         WindowGroup {
             SplashView()
+                .onAppear {
+                    Task { await NotificationManager.shared.clearBadgeAndDeliveredNotifications() }
+                }
         }
     }
 }
@@ -48,7 +51,7 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
     // 应用在前台时收到通知
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
         // 即使应用在前台也显示通知
-        completionHandler([.banner, .sound, .badge])
+        completionHandler([.banner, .sound]) // 前台不显示角标，避免常驻红点
     }
     
     // 用户点击通知

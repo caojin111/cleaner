@@ -65,6 +65,17 @@ struct VideosView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: RecycleBinManager.itemRestoredNotification)) { _ in
+            Logger.ui.info("收到回收站恢复通知，准备刷新视频分析与界面")
+            Task {
+                await videoAnalyzer.quickAnalysis()
+                await MainActor.run {
+                    currentItemIndex = 0
+                    pageResetKey = UUID()
+                    Logger.ui.info("VideosView 已刷新到最新状态，恢复滑动界面")
+                }
+            }
+        }
         .navigationBarHidden(true)
         .onAppear {
             startAnalysisIfNeeded()
