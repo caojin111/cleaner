@@ -15,7 +15,7 @@
     },
     "onboarding": {
       "page1": {
-        "title": "Just 1 min a day, \nclean your photo library",
+        "title": "Just 1 min a day,\nclean your photo library",
         "subtitle": "AI Cleaning analysis to improve phone performance",
         "continue": "Continue"
       },
@@ -65,6 +65,10 @@
         "photos": "%d photos",
         "performance_boost": "Performance Boost",
         "significant_improvement": "Significant Improvement",
+        "minor_improvement": "Minor Improvement",
+        "noticeable_improvement": "Noticeable Improvement",
+        "major_improvement": "Major Improvement",
+        "exceptional_improvement": "Exceptional Improvement",
         "calculating": "Calculating...",
         "photos_unit": "pics",
         "gb_unit": "GB",
@@ -170,6 +174,7 @@
       "duplicate_videos": "Duplicate Videos",
       "space_savings": "Space Savings",
       "unlimited_swipes": "Unlimited Swipes",
+      "similarity": "Similarity: %d%%",
       "remaining_swipes": "Remaining %d/10",
       "delete": "Delete",
       "keep": "Keep",
@@ -324,7 +329,7 @@
     },
     "onboarding": {
       "page1": {
-        "title": "高效清理，节省空间",
+        "title": "每天只需1分钟，\n清理您的照片库",
         "subtitle": "智能分析，提升手机性能",
         "continue": "继续"
       },
@@ -374,6 +379,10 @@
         "photos": "%d photos",
         "performance_boost": "性能提升",
         "significant_improvement": "显著改善",
+        "minor_improvement": "轻微改善",
+        "noticeable_improvement": "明显改善",
+        "major_improvement": "大幅改善",
+        "exceptional_improvement": "卓越改善",
         "calculating": "计算中...",
         "photos_unit": "张",
         "gb_unit": "GB",
@@ -479,6 +488,7 @@
       "duplicate_videos": "重复视频",
       "space_savings": "可节省",
       "unlimited_swipes": "无限滑动",
+      "similarity": "相似度: %d%%",
       "remaining_swipes": "剩余 %d/10",
       "delete": "删除",
       "keep": "保留",

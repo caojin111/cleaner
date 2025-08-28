@@ -14,6 +14,7 @@ struct OnboardingPage4View: View {
     @Binding var showPaywall: Bool
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
     @State private var photoCount: Int = 0
+    @State private var actualDuplicates: Int = 0
     @State private var isAnalyzing = false
     @State private var pageVisible = false
     
@@ -66,7 +67,7 @@ struct OnboardingPage4View: View {
                         StatRow(
                             icon: "🟢",
                             title: "onboarding.page4.performance_boost".localized,
-                            value: "onboarding.page4.significant_improvement".localized,
+                            value: calculatePerformanceBoost(),
                             color: .blue
                         )
                     }
@@ -111,13 +112,19 @@ struct OnboardingPage4View: View {
         isAnalyzing = true
         
         Task {
+            // 获取照片总数
             let count = await photoAnalyzer.getPhotoCount()
+            
+            // 执行实际分析以获取真实的重复数量
+            await photoAnalyzer.startAnalysis()
+            let actualDuplicatesCount = photoAnalyzer.foundDuplicates.count
             
             await MainActor.run {
                 photoCount = count
+                actualDuplicates = actualDuplicatesCount
                 isAnalyzing = false
                 
-                Logger.analytics.info("用户照片总数: \(count)")
+                Logger.analytics.info("用户照片总数: \(count), 实际重复数: \(actualDuplicatesCount)")
             }
         }
     }
@@ -125,36 +132,37 @@ struct OnboardingPage4View: View {
     private func calculateEstimatedSpaceSavings() -> String {
         guard photoCount > 0 else { return "onboarding.page4.calculating".localized }
         
-        // 基于合理假设的计算：
-        // 1. 假设10-15%的照片是重复或相似的
-        // 2. 每张照片平均大小约2-5MB（现代手机拍摄）
-        // 3. 根据照片数量动态调整重复率
+        // 优先使用PhotoAnalyzer中的准确空间节省数据
+        if actualDuplicates > 0 {
+            let actualSavings = photoAnalyzer.estimatedSpaceSavings()
+            Logger.analytics.info("使用准确的空间节省数据: \(formatByteCount(actualSavings))")
+            return formatByteCount(actualSavings)
+        }
         
-        let duplicateRate: Double
+        // 如果还没有实际分析结果，使用预估
+        let duplicateCount = calculateEstimatedDuplicatesCount()
+        
+        // 基于合理假设的计算：
+        // 每张照片平均大小约2-5MB（现代手机拍摄）
         let averagePhotoSize: Int64
         
         if photoCount < 100 {
-            duplicateRate = 0.05 // 5% 重复率（较少照片时重复较少）
             averagePhotoSize = 3 * 1024 * 1024 // 3MB
         } else if photoCount < 500 {
-            duplicateRate = 0.10 // 10% 重复率
             averagePhotoSize = 4 * 1024 * 1024 // 4MB
         } else if photoCount < 1000 {
-            duplicateRate = 0.12 // 12% 重复率
             averagePhotoSize = 4 * 1024 * 1024 // 4MB
         } else {
-            duplicateRate = 0.15 // 15% 重复率（照片越多，重复越可能）
             averagePhotoSize = 5 * 1024 * 1024 // 5MB
         }
         
-        let estimatedDuplicates = Int(Double(photoCount) * duplicateRate)
-        let estimatedSavings = Int64(estimatedDuplicates) * averagePhotoSize
+        let estimatedSavings = Int64(duplicateCount) * averagePhotoSize
         
         // 添加一些随机性使其看起来更真实
         let randomFactor = Double.random(in: 0.8...1.2)
         let finalSavings = Int64(Double(estimatedSavings) * randomFactor)
         
-        Logger.analytics.info("预计节省空间计算: 照片总数=\(photoCount), 重复率=\(Int(duplicateRate*100))%, 预计节省=\(formatByteCount(finalSavings))")
+        Logger.analytics.info("使用预估的空间节省数据: 照片总数=\(photoCount), 预估重复数=\(duplicateCount), 预计节省=\(formatByteCount(finalSavings))")
         
         return formatByteCount(finalSavings)
     }
@@ -162,6 +170,17 @@ struct OnboardingPage4View: View {
     private func calculateEstimatedDuplicates() -> String {
         guard photoCount > 0 else { return "onboarding.page4.calculating".localized }
         
+        // 优先使用实际检测到的重复数量
+        if actualDuplicates > 0 {
+            return "\(formatNumber(actualDuplicates))\("onboarding.page4.photos_unit".localized)"
+        }
+        
+        // 如果还没有实际分析结果，使用预估值
+        let estimatedCount = calculateEstimatedDuplicatesCount()
+        return "\(formatNumber(estimatedCount))\("onboarding.page4.photos_unit".localized)"
+    }
+    
+    private func calculateEstimatedDuplicatesCount() -> Int {
         let duplicateRate: Double
         
         if photoCount < 100 {
@@ -174,8 +193,39 @@ struct OnboardingPage4View: View {
             duplicateRate = 0.15 // 15% 重复率
         }
         
-        let estimatedDuplicates = Int(Double(photoCount) * duplicateRate)
-        return "\(formatNumber(estimatedDuplicates))\("onboarding.page4.photos_unit".localized)"
+        return Int(Double(photoCount) * duplicateRate)
+    }
+    
+    private func calculatePerformanceBoost() -> String {
+        guard photoCount > 0 else { return "onboarding.page4.calculating".localized }
+        
+        // 基于重复文件数量和节省空间计算性能提升
+        let duplicateCount = actualDuplicates > 0 ? actualDuplicates : calculateEstimatedDuplicatesCount()
+        
+        // 计算性能提升等级
+        let performanceLevel: String
+        let improvementPercentage: Int
+        
+        if duplicateCount < 10 {
+            performanceLevel = "onboarding.page4.minor_improvement".localized
+            improvementPercentage = 5
+        } else if duplicateCount < 50 {
+            performanceLevel = "onboarding.page4.noticeable_improvement".localized
+            improvementPercentage = 15
+        } else if duplicateCount < 100 {
+            performanceLevel = "onboarding.page4.significant_improvement".localized
+            improvementPercentage = 25
+        } else if duplicateCount < 200 {
+            performanceLevel = "onboarding.page4.major_improvement".localized
+            improvementPercentage = 35
+        } else {
+            performanceLevel = "onboarding.page4.exceptional_improvement".localized
+            improvementPercentage = 50
+        }
+        
+        Logger.analytics.info("性能提升计算: 重复数=\(duplicateCount), 提升等级=\(performanceLevel), 提升百分比=\(improvementPercentage)%")
+        
+        return performanceLevel
     }
     
     // MARK: - Helper Methods
