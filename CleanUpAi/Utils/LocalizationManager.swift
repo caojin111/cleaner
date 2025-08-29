@@ -27,13 +27,13 @@ class LocalizationManager: ObservableObject {
         let preferredLanguage = Locale.preferredLanguages.first ?? "en"
         let languageCode = String(preferredLanguage.prefix(2))
         
-        // 系统默认为英语，只有检测到中文时才使用中文
+        // 检测设备语言并设置对应的语言代码
         if languageCode == "zh" {
             self.currentLanguage = "zh"
             logger.info("检测到中文设备语言，切换到中文")
         } else {
             self.currentLanguage = "en"
-            logger.info("使用默认英语语言")
+            logger.info("检测到英文或其他语言设备，使用英文")
         }
         
         // 调试：打印当前语言和可用的本地化数据

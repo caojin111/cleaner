@@ -44,9 +44,9 @@ struct OnboardingContainerView: View {
                     case 1:
                         OnboardingPage2View(currentPage: $currentPage)
                     case 2:
-                        OnboardingPage3View(currentPage: $currentPage)
+                        OnboardingPage3View_New(currentPage: $currentPage)
                     case 3:
-                        OnboardingTransitionView(currentPage: $currentPage)
+                        OnboardingTransitionView_New(currentPage: $currentPage)
                     case 4:
                         OnboardingPage4View(
                             currentPage: $currentPage,

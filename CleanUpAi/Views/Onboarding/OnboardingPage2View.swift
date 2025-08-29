@@ -15,77 +15,231 @@ struct OnboardingPage2View: View {
     @State private var isRequestingPermissions = false
     @State private var showPermissionAlert = false
     
+    // 动画状态
+    @State private var animateLogo = false
+    @State private var animateTitle = false
+    @State private var animateSubtitle = false
+    @State private var animatePhotoCard = false
+    @State private var animateNotificationCard = false
+    @State private var animateButton = false
+    
     var body: some View {
-        VStack(spacing: 36) {
-            Spacer()
-            // 图标
-            Image(systemName: "checkmark.shield")
-                .font(.system(size: 70, weight: .light))
-                .foregroundColor(Color.seniorPrimary)
-            // 文案
-            VStack(spacing: 18) {
-                Text(Constants.Onboarding.page2Title)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.center)
-                Text("onboarding.page2.subtitle".localized)
-                    .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(.seniorText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-            }
-            // 权限卡片
-            VStack(spacing: 16) {
-                PermissionRow(
-                    icon: "📸",
-                    title: "onboarding.page2.photo_permission".localized,
-                    description: "onboarding.page2.analyze_similar_photos".localized,
-                    status: permissionManager.getPermissionStatusText(for: "photos")
-                )
-                PermissionRow(
-                    icon: "🔔",
-                    title: "onboarding.page2.notification_permission".localized,
-                    description: "onboarding.page2.cleaning_suggestion".localized,
-                    status: permissionManager.getPermissionStatusText(for: "notifications")
-                )
-            }
-            .padding(.horizontal, 24)
-            Spacer()
-            // 按钮组
-            VStack(spacing: 16) {
-                Button(action: { requestPermissions() }) {
-                        Text(isRequestingPermissions ? "onboarding.page2.requesting".localized : Constants.Onboarding.page2Button)
-                        .font(.system(size: 20, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity, minHeight: 56)
-                    .background(
-                            Color.seniorPrimary
-                    )
-                        .cornerRadius(28)
+        ZStack {
+            // 背景
+            Color.white.ignoresSafeArea()
+            
+            // 顶部Logo - 使用OB-2专用的logo资源
+            Image("ob2_logo")
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .frame(width: 158, height: 99)
+                .position(x: 115 + 158/2, y: 74 + 99/2) // y: 124 - 50
+                .opacity(animateLogo ? 1 : 0)
+                .offset(y: animateLogo ? 0 : -20)
+                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: animateLogo)
+            
+            // 主标题 - 精确位置：x: 38, y: 257, width: 324, height: 44
+            Text("onboarding.page2.title".localized)
+                .font(.system(size: 30, weight: .bold, design: .default)) // 从40改为30
+                .foregroundColor(.black)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .frame(width: 324, height: 44)
+                .position(x: 38 + 324/2, y: 207 + 44/2) // y: 257 - 50
+                .opacity(animateTitle ? 1 : 0)
+                .offset(y: animateTitle ? 0 : 20)
+                .animation(.easeOut(duration: 0.6).delay(0.1), value: animateTitle)
+            
+            // 副标题 - 精确位置：x: 62, y: 309, width: 266, height: 44
+            Text("onboarding.page2.subtitle".localized)
+                .font(.system(size: 15, weight: .regular, design: .default))
+                .foregroundColor(.black)
+                .multilineTextAlignment(.center)
+                .lineLimit(nil)
+                .frame(width: 266, height: 44)
+                .position(x: 62 + 266/2, y: 259 + 44/2) // y: 309 - 50
+                .opacity(animateSubtitle ? 1 : 0)
+                .offset(y: animateSubtitle ? 0 : 20)
+                .animation(.easeOut(duration: 0.6).delay(0.2), value: animateSubtitle)
+            
+            // 照片库权限卡片
+            ZStack {
+                Group {
+                // 图标背景 - 精确位置：x: 28, y: 411, width: 50, height: 50
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(red: 0.043, green: 0.663, blue: 0.831, opacity: 0.25))
+                    .frame(width: 50, height: 50)
+                    .position(x: 28 + 50/2, y: 361 + 50/2) // y: 411 - 50
+                
+                // 照片图标 - 使用Figma图片，与蓝色底块完全重叠
+                Image("ob2_polaroid_frame")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50/1.2, height: 50/1.5) // 缩小1.2倍
+                    .position(x: 28 + 50/2, y: 361 + 50/2) // y: 411 - 50，与底块位置完全重叠
                 }
-                .disabled(isRequestingPermissions)
-                if permissionManager.hasPhotoLibraryAccess {
-                    Button(action: {
+                .opacity(animatePhotoCard ? 1 : 0)
+                .offset(x: animatePhotoCard ? 0 : -50)
+                .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.3), value: animatePhotoCard)
+            }
+            
+            // 照片库权限文本
+            HStack(spacing: 0) {
+                // 标题 - 精确位置：x: 90, y: 414, width: 95, height: 22
+                Text("onboarding.page2.photo_permission".localized)
+                    .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .frame(width: 150.0, height: 22)
+                    .position(x: 105 + 95/2, y: 364 + 22/2) // y: 414 - 50
+                
+                Spacer()
+                
+                // 状态 - 精确位置：x: 304, y: 414, width: 51, height: 22
+                ZStack {
+                    // 状态背景
+                    Image("ob2_status_bg")
+                        .resizable()
+                        .frame(width: 80, height: 30)
+                        .position(x: 304 + 80/2, y: 364 + 22/2) // y: 414 - 50
+                    
+                    // 状态文本
+                    Text(permissionManager.getPermissionStatusText(for: "photos"))
+                        .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
+                        .foregroundColor(.black)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80, height: 22)
+                        .position(x: 304 + 80/2, y: 364 + 22/2) // y: 414 - 50
+                }
+            }
+            
+            // 照片库权限描述
+            Text("onboarding.page2.analyze_similar_photos".localized)
+                .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
+                .foregroundColor(Color.black.opacity(0.63))
+                .multilineTextAlignment(.leading)
+                .frame(width: 226, height: 22)
+                .position(x: 90 + 226/2, y: 389 + 22/2) // y: 439 - 50
+            
+            // 通知权限卡片
+            ZStack {
+                Group {
+                // 图标背景 - 精确位置：x: 27, y: 532, width: 50, height: 50
+                RoundedRectangle(cornerRadius: 10)
+                    .fill(Color(red: 0.043, green: 0.663, blue: 0.831, opacity: 0.25))
+                    .frame(width: 50, height: 50)
+                    .position(x: 27 + 50/2, y: 482 + 50/2) // y: 532 - 50
+                
+                // 通知图标 - 使用Figma图片，与蓝色底块完全重叠
+                Image("ob2_notification_icon")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 50/1.2, height: 50/1.5) // 缩小1.2倍
+                    .position(x: 27 + 50/2, y: 482 + 50/2) // y: 532 - 50，与底块位置完全重叠
+                }
+                .opacity(animateNotificationCard ? 1 : 0)
+                .offset(x: animateNotificationCard ? 0 : -50)
+                .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.4), value: animateNotificationCard)
+            }
+            
+            // 通知权限文本
+            HStack(spacing: 0) {
+                // 标题 - 精确位置：x: 93, y: 534, width: 88, height: 22
+                Text("onboarding.page2.notification_permission".localized)
+                    .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.leading)
+                    .frame(width: 130.0, height: 22)
+                    .position(x: 98 + 88/2, y: 484 + 22/2) // y: 534 - 50
+                
+                Spacer()
+                
+                // 状态 - 精确位置：x: 304, y: 533, width: 51, height: 22
+                ZStack {
+                    // 状态背景
+                    Image("ob2_status_bg")
+                        .resizable()
+                        .frame(width: 80, height: 30)
+                        .position(x: 304 + 80/2, y: 483 + 22/2) // y: 533 - 50
+                    
+                    // 状态文本
+                    Text(permissionManager.getPermissionStatusText(for: "notifications"))
+                        .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
+                        .foregroundColor(.black)
+                        .multilineTextAlignment(.trailing)
+                        .frame(width: 80, height: 22)
+                        .position(x: 304 + 80/2, y: 483 + 22/2) // y: 533 - 50
+                }
+            }
+            
+            // 通知权限描述
+            Text("onboarding.page2.cleaning_suggestion".localized)
+                .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
+                .foregroundColor(Color.black.opacity(0.63))
+                .frame(width: 195, height: 22)
+                .position(x: 90 + 195/2, y: 511 + 22/2) // y: 561 - 50
+            
+            // Continue按钮 - 与第一页保持一致的规格
+                            Button(action: {
+                    if permissionManager.hasPhotoLibraryAccess {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentPage += 1
                         }
                         Logger.logPageNavigation(from: "Onboarding-2", to: "Onboarding-3")
-                    }) {
-                            Text("onboarding.page2.continue".localized)
-                            .font(.system(size: 20, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity, minHeight: 56)
-                        .background(
-                                Color.seniorPrimary
-                        )
-                            .cornerRadius(28)
+                    } else {
+                        requestPermissions()
                     }
+                }) {
+                    RoundedRectangle(cornerRadius: 50)
+                        .fill(Color(red: 0.043, green: 0.663, blue: 0.831)) // #0BA9D4
+                        .frame(width: 267, height: 52) // 按钮尺寸
+                        .overlay(
+                            Text(permissionManager.hasPhotoLibraryAccess ? "onboarding.page2.continue".localized : "onboarding.page2.granted".localized)
+                                .font(.system(size: 25, weight: .regular, design: .default))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 150.0, height: 22) // Continue文字尺寸，与第一页一致
+                        )
+                }
+                .position(x: 62 + 267/2, y: 700) // 扩大触摸区域 // 与第一页保持一致的位置
+                .opacity(animateButton ? 1 : 0)
+                .offset(y: animateButton ? 0 : 20)
+                .animation(.easeOut(duration: 0.6).delay(0.5), value: animateButton)
+        }
+        .onAppear {
+            // 页面出现时更新权限状态
+            permissionManager.updateCurrentStatus()
+            
+            // 依次触发动画
+            withAnimation {
+                animateLogo = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation {
+                    animateTitle = true
                 }
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 36)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation {
+                    animateSubtitle = true
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation {
+                    animatePhotoCard = true
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                withAnimation {
+                    animateNotificationCard = true
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation {
+                    animateButton = true
+                }
+            }
         }
-        .background(Color.white.ignoresSafeArea())
         .alert("onboarding.page2.title".localized, isPresented: $showPermissionAlert) {
             Button("onboarding.page2.gotosetting".localized) {
                 permissionManager.openAppSettings()
@@ -123,49 +277,6 @@ struct OnboardingPage2View: View {
     }
 }
 
-// MARK: - Permission Row Component
-
-struct PermissionRow: View {
-    let icon: String
-    let title: String
-    let description: String
-    let status: String
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            // 图标
-            Text(icon)
-                .font(.largeTitle)
-            
-            // 内容
-            VStack(alignment: .leading, spacing: 4) {
-                HStack {
-                    Text(title)
-                        .font(.seniorBody)
-                        .fontWeight(.semibold)
-                        .foregroundColor(.seniorText)
-                    
-                    Spacer()
-                    
-                    Text(status)
-                        .font(.seniorCaption)
-                        .foregroundColor(.seniorSecondary)
-                }
-                
-                Text(description)
-                    .font(.seniorCaption)
-                    .foregroundColor(.seniorSecondary)
-            }
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                .fill(Color.white)
-                .shadow(color: .gray.opacity(0.1), radius: 2, x: 0, y: 1)
-        )
-    }
-}
-
 #Preview {
     OnboardingPage2View(currentPage: .constant(1))
-} 
+}
