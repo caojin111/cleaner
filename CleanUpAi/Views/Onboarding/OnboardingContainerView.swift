@@ -23,18 +23,20 @@ struct OnboardingContainerView: View {
             
             VStack {
                 // 进度指示器 (过渡页不显示单独的进度点)
-                HStack {
-                    Spacer()
-                    ForEach(0..<4, id: \.self) { index in
-                        Circle()
-                            .fill(index <= min(currentPage, 3) ? Color.seniorPrimary : Color.white.opacity(0.18))
-                            .frame(width: 12, height: 12)
-                            .animation(.easeInOut, value: currentPage)
+                if currentPage != 3 { // 过渡页不显示进度点
+                    HStack {
+                        Spacer()
+                        ForEach(0..<4, id: \.self) { index in
+                            Circle()
+                                .fill(index <= min(currentPage, 3) ? Color.seniorPrimary : Color.white.opacity(0.18))
+                                .frame(width: 12, height: 12)
+                                .animation(.easeInOut, value: currentPage)
+                        }
+                        Spacer()
                     }
-                    Spacer()
+                    .padding(.horizontal, 20)
+                    .padding(.top, 20)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 20)
                 
                 // 页面内容
                 Group {

@@ -3,7 +3,7 @@
     "app": {
       "name": "CleanUp AI",
       "developer": "Made with LazyCat",
-      "version": "v1.1.0"
+      "version": "v1.2.0"
     },
     "navigation": {
       "photos": "Photos",
@@ -78,8 +78,12 @@
       }
     },
     "paywall": {
-      "title": "CleanUp AI Pro",
-      "subtitle": "Unlock all features for the best cleaning experience",
+      "title": "AI Cleaner Pro",
+      "subtitle": "Clean up pics 8x faster by becoming",
+      "countdown_title": "Limited time offer",
+      "hours": "HOURS",
+      "minutes": "MINUTES",
+      "seconds": "SECONDS",
       "select_plan": "Choose Subscription Plan",
       "recommended": "Recommended",
       "discount": "40% OFF",
@@ -317,7 +321,7 @@
     "app": {
       "name": "CleanUp AI",
       "developer": "Made with LazyCat",
-      "version": "v1.1.0"
+      "version": "v1.2.0"
     },
     "navigation": {
       "photos": "照片",
@@ -392,8 +396,12 @@
       }
     },
     "paywall": {
-      "title": "CleanUp AI Pro",
-      "subtitle": "解锁全部功能，获得最佳清理体验",
+      "title": "AI Cleaner Pro",
+      "subtitle": "更快清理照片，8倍速提升",
+      "countdown_title": "限时优惠",
+      "hours": "时",
+      "minutes": "分",
+      "seconds": "秒",
       "select_plan": "选择订阅方案",
       "recommended": "推荐",
       "discount": "40% OFF",

@@ -9,6 +9,33 @@ import SwiftUI
 import Foundation
 import OSLog
 
+// MARK: - Color Hex Extension
+extension Color {
+    init(hex: String) {
+        let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: hex).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (1, 1, 1, 0)
+        }
+        self.init(
+            .sRGB,
+            red: Double(r) / 255,
+            green: Double(g) / 255,
+            blue: Double(b) / 255,
+            opacity: Double(a) / 255
+        )
+    }
+}
+
 struct OnboardingPage4View: View {
     @Binding var currentPage: Int
     @Binding var showPaywall: Bool
@@ -17,91 +44,80 @@ struct OnboardingPage4View: View {
     @State private var actualDuplicates: Int = 0
     @State private var isAnalyzing = false
     @State private var pageVisible = false
-    
+
     var body: some View {
-        VStack(spacing: 36) {
-            Spacer()
-            // 统计展示（简化的动画）
-            ZStack {
-                Circle()
-                    .fill(Color.seniorPrimary.opacity(0.18))
-                    .frame(width: 180, height: 180)
+        ZStack {
+            Color.white.ignoresSafeArea()
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                // 主要数字展示区域 - 匹配Figma设计，去掉圆形背景
                 VStack(spacing: 16) {
                     Text(formatNumber(photoCount))
-                        .font(.system(size: 48, weight: .bold, design: .rounded))
-                        .foregroundColor(Color.seniorPrimary)
+                        .font(.system(size: 75, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(hex: "1985A2"))
                     Text("onboarding.page4.photos_count".localized)
-                        .font(.system(size: 22, weight: .semibold, design: .rounded))
-                        .foregroundColor(.seniorText)
+                        .font(.system(size: 30, weight: .semibold, design: .rounded))
+                        .foregroundColor(Color(hex: "000000"))
+                    Text("onboarding.page4.title".localized)
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(.black)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                        .padding(.horizontal, 16)
                 }
-            }
-            .opacity(pageVisible ? 1.0 : 0.0)
-            .offset(y: pageVisible ? 0 : 30)
-            
-            // 文案
-            VStack(spacing: 18) {
-                Text(String(format: "onboarding.page4.title".localized, photoCount))
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(.black)
-                    .multilineTextAlignment(.center)
-                Text("onboarding.page4.subtitle".localized)
-                    .font(.system(size: 20, weight: .regular, design: .rounded))
-                    .foregroundColor(.seniorText)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 24)
-                
+                .opacity(pageVisible ? 1.0 : 0.0)
+                .offset(y: pageVisible ? 0 : 30)
+
+                // 统计信息区域
                 if photoCount > 0 {
                     VStack(spacing: 12) {
                         StatRow(
-                            icon: "🟢",
                             title: "onboarding.page4.estimated_duplicates".localized,
                             value: calculateEstimatedDuplicates(),
-                            color: .orange
+                            color: Color(hex: "EA8373")
                         )
                         StatRow(
-                            icon: "🟢",
                             title: "onboarding.page4.estimated_saving".localized,
                             value: calculateEstimatedSpaceSavings(),
-                            color: .green
+                            color: Color(hex: "76CD51")
                         )
                         StatRow(
-                            icon: "🟢",
                             title: "onboarding.page4.performance_boost".localized,
                             value: calculatePerformanceBoost(),
-                            color: .blue
+                            color: Color(hex: "5180CD")
                         )
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, 34)
+                    .padding(.top, 32)
+                    .opacity(pageVisible ? 1.0 : 0.0)
+                    .offset(y: pageVisible ? 0 : 30)
                 }
-            }
-            .opacity(pageVisible ? 1.0 : 0.0)
-            .offset(y: pageVisible ? 0 : 30)
-            
-            Spacer()
-            
-            // 按钮
-            Button(action: {
-                Logger.logPageNavigation(from: "Onboarding-4", to: "Paywall")
-                showPaywall = true
-            }) {
-                Text("onboarding.page4.start_cleaning".localized)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
+
+                Spacer()
+
+                // 开始清理按钮 - 匹配Figma设计
+                Button(action: {
+                    Logger.logPageNavigation(from: "Onboarding-4", to: "Paywall")
+                    showPaywall = true
+                }) {
+                                    Text("onboarding.page4.start_cleaning".localized)
+                    .font(.system(size: 25, weight: .semibold, design: .rounded))
                     .foregroundColor(.white)
-                    .frame(maxWidth: .infinity, minHeight: 56)
-                .background(
-                    Color.seniorPrimary
-                )
-                .cornerRadius(28)
+                        .frame(maxWidth: .infinity, minHeight: 52)
+                        .background(Color(hex: "0BA9D4"))
+                        .cornerRadius(50)
+                }
+                .padding(.horizontal, 62)
+                .padding(.bottom, 36)
+                .opacity(pageVisible ? 1.0 : 0.0)
+                .offset(y: pageVisible ? 0 : 30)
             }
-            .padding(.horizontal, 32)
-            .padding(.bottom, 36)
-            .opacity(pageVisible ? 1.0 : 0.0)
-            .offset(y: pageVisible ? 0 : 30)
         }
-        .background(Color.white.ignoresSafeArea())
         .onAppear {
             startPhotoAnalysis()
-            // 简单的页面出现动画
+            // 页面出现动画
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
                 pageVisible = true
             }
@@ -276,34 +292,41 @@ struct OnboardingPage4View: View {
 // MARK: - Stat Row Component
 
 struct StatRow: View {
-    let icon: String
     let title: String
     let value: String
     let color: Color
-    
+
     var body: some View {
         HStack(spacing: 12) {
-            Text(icon)
-                .font(.title2)
-            
+            // 小图标区域
+            ZStack {
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(Color(hex: "D9D9D9").opacity(0.289))
+                    .frame(width: 25, height: 25)
+                // 使用已下载的图片作为图标
+                Image("e90804c70b59f2ca41899da040ab1892")
+                    .resizable()
+                    .frame(width: 25, height: 25)
+            }
+
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.seniorCaption)
-                    .foregroundColor(.seniorSecondary)
-                
+                    .font(.system(size: 14, weight: .regular, design: .default))
+                    .foregroundColor(Color(hex: "000000"))
+
                 Text(value)
-                    .font(.seniorBody)
-                    .fontWeight(.semibold)
+                    .font(.system(size: 20, weight: .bold, design: .default))
                     .foregroundColor(color)
             }
-            
+
             Spacer()
         }
-        .padding(12)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .frame(width: 328, height: 76)
         .background(
             RoundedRectangle(cornerRadius: 8)
-                .fill(Color.white.opacity(0.8))
-                .shadow(color: .gray.opacity(0.1), radius: 2)
+                .fill(Color(hex: "D9D9D9").opacity(0.289))
         )
     }
 }

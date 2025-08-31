@@ -39,7 +39,7 @@ struct OnboardingTransitionView_New: View {
                                 }
                             }
                         )
-                        .position(x: geometry.size.width/2, y: 150)
+                        .position(x: geometry.size.width/2, y: 200)
                 }
                 
                 // 标题文本
@@ -48,7 +48,7 @@ struct OnboardingTransitionView_New: View {
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .frame(width: 324, height: 44)
-                    .position(x: geometry.size.width/2, y: 400) // y: 450 - 50
+                    .position(x: geometry.size.width/2, y: 450) // y: 450 - 50
                 
                 // 描述文本
                 Text("onboarding.transition.subtitle".localized)
@@ -56,7 +56,7 @@ struct OnboardingTransitionView_New: View {
                     .foregroundColor(.gray)
                     .multilineTextAlignment(.center)
                     .frame(width: 266, height: 44)
-                    .position(x: geometry.size.width/2, y: 450) // y: 500 - 50
+                    .position(x: geometry.size.width/2, y: 500) // y: 500 - 50
                 
                 // 进度条和进度文本
                 VStack(spacing: 16) {
@@ -85,7 +85,7 @@ struct OnboardingTransitionView_New: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(.gray)
                 }
-                .position(x: geometry.size.width/2, y: 600) // y: 650 - 50
+                .position(x: geometry.size.width/2, y: 650) // y: 650 - 50
             }
         }
         .onAppear {
