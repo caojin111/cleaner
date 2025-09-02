@@ -371,6 +371,7 @@ struct PaywallView: View {
                     .foregroundColor(Color(hex: "000000").opacity(0.61))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
+                    .offset(y: -3) // 向上移动3像素
 
                 Text("paywall.title".localized)
                     .font(.custom("Afacad", size: 40))
@@ -475,67 +476,222 @@ struct PaywallView: View {
     // MARK: - Features Section
 
     private var featuresSection: some View {
-        VStack(spacing: 20) {
-            // 功能对比区域
-            HStack(spacing: 20) {
-                // Free功能对比图片
-                Image("function_compare_1")
-                    .resizable()
-                    .frame(width: 136, height: 163)
+        GeometryReader { geometry in
+            ZStack {
+                // 渐变背景
+                LinearGradient(
+                    gradient: Gradient(stops: [
+                        .init(color: Color(hex: "0DCCFF"), location: 0.0),
+                        .init(color: Color.white, location: 1.0)
+                    ]),
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                .opacity(0.18)
+                
+                VStack(spacing: 24) {
+                    // 标题文本
+                    Text("Unlock all features for the best\ncleaning experience")
+                        .font(.custom("Afacad", size: 25)) // 缩小5号：30→25
+                        .fontWeight(.bold)
+                        .foregroundColor(Color(hex: "212121"))
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.top, 18)
+                        .padding(.horizontal, 16)
+                    
+                                        // 功能对比区域 - 响应式布局设计，实现覆盖效果
+                    ZStack {
+                        // Free 列 - 底层
+                        HStack(spacing: 16) {
+                            VStack(spacing: 0) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.white) // 改为白色
+                                        .frame(height: 356) // 固定高度
 
-                // Pro功能对比图片
-                Image("function_compare_2")
-                    .resizable()
-                    .frame(width: 79, height: 82)
-            }
-            .padding(.horizontal, 34)
+                                    VStack(spacing: 16) {
+                                        // Free标题区域加上Vector图标
+                                        ZStack {
+                                            Image("free_vector_icon")
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 60, height: 45)
 
-            // 功能列表
-            VStack(spacing: 12) {
-                ForEach(0..<proFeatures.count, id: \.self) { index in
-                    NewFeatureRow(
-                        feature: proFeatures[index],
-                        delay: Double(index) * 0.2
-                    )
-                    .opacity(animateFeatures ? 1.0 : 0.0)
-                    .offset(x: animateFeatures ? 0 : 50)
+                                            Text("Free")
+                                                .font(.custom("Afacad", size: 26))
+                                                .fontWeight(.bold)
+                                                .foregroundColor(Color(hex: "212121"))
+                                                .offset(y: 2) // 向下移动7像素，让文字在图标内
+                                        }
+                                        .padding(.top, 16)
+                                        .offset(x: -20, y: -10) // 向左移动10像素，向上移动30像素
+
+                                        // Free功能列表
+                                        VStack(spacing: 16) {
+                                            FeatureCompareRow(
+                                                icon: "xmark.circle",
+                                                iconColor: Color(hex: "7A7F8D"),
+                                                text: "Limited swipes\nchances",
+                                                textColor: Color(hex: "7A7F8D")
+                                            )
+
+                                            FeatureCompareRow(
+                                                icon: "xmark.circle",
+                                                iconColor: Color(hex: "7A7F8D"),
+                                                text: "More Ads",
+                                                textColor: Color(hex: "7A7F8D")
+                                            )
+
+                                            FeatureCompareRow(
+                                                icon: "xmark.circle",
+                                                iconColor: Color(hex: "7A7F8D"),
+                                                text: "No Analysis of memory professionals",
+                                                textColor: Color(hex: "7A7F8D")
+                                            )
+                                        }
+                                        .padding(.horizontal, 12)
+
+                                        Spacer()
+                                    }
+                                }
+                            }
+                            .frame(width: 161) // 固定宽度161px
+
+                            Spacer()
+                        }
+                        .padding(.horizontal, 16)
+
+                        // Pro 列 - 上层，覆盖Free
+                        HStack(spacing: 16) {
+                            Spacer()
+
+                            VStack(spacing: 0) {
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color(hex: "1FB3DD"))
+                                        .frame(height: 430) // 固定高度430px，增加20像素让文字完整显示
+
+                                    VStack(spacing: 16) {
+                                        // Pro标题区域加上Vector图标
+                                        ZStack {
+                                            Image("pro_vector_icon")
+                                                .renderingMode(.template)
+                                                .resizable()
+                                                .aspectRatio(contentMode: .fit)
+                                                .frame(width: 60, height: 45)
+                                                .foregroundColor(Color(hex: "F695F1")) // 应用颜色
+
+                                            Text("Pro")
+                                                .font(.custom("Afacad", size: 26))
+                                                .fontWeight(.bold)
+                                                .foregroundColor(Color.white)
+                                                .offset(y: 2) // 向下移动7像素，让文字在图标内
+                                        }
+                                        .padding(.top, 16)
+                                        .offset(x: -20, y: -30) // 向左移动10像素，向上移动30像素
+
+                                        // Pro功能列表
+                                        VStack(spacing: 16) {
+                                            FeatureCompareRow(
+                                                icon: "checkmark.circle.fill",
+                                                iconColor: Color(hex: "F7C948"),
+                                                text: "Unlimited swipes chances",
+                                                textColor: Color.white
+                                            )
+
+                                            FeatureCompareRow(
+                                                icon: "checkmark.circle.fill",
+                                                iconColor: Color(hex: "F7C948"),
+                                                text: "No ads",
+                                                textColor: Color.white
+                                            )
+
+                                            FeatureCompareRow(
+                                                icon: "checkmark.circle.fill",
+                                                iconColor: Color(hex: "F7C948"),
+                                                text: "Professional memory analysis keeps your phone safe and healthy",
+                                                textColor: Color.white
+                                            )
+                                        }
+                                        .padding(.horizontal, 12)
+
+                                        Spacer()
+                                    }
+                                }
+                            }
+                            .frame(width: 217) // 固定宽度217px，向左扩展20像素，比Free宽
+                        }
+                        .padding(.horizontal, 16)
+
+                        // 功能对比背景图片 - 响应式调整（对调位置）
+                                                HStack(spacing: max(16, (geometry.size.width - 320) / 4)) {
+                            Image("function_compare_background_2")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: min(105, geometry.size.width * 0.15 * 1.5), maxHeight: 105) // 变大1.5倍
+                                .offset(x: -20, y: 130) // 向下移动40像素，向左移动20像素
+
+                            Image("function_compare_background_1")
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(maxWidth: min(180, geometry.size.width * 0.25 * 1.5), maxHeight: 210) // 变大1.5倍
+                                .offset(y: 120) // 向下移动20像素
+                        }
+                    }
                 }
             }
         }
-        .padding(.top, 5) // 进一步减少顶部间距，让元素紧贴按钮
-        .padding(.horizontal, 34)
+        .frame(height: 500) // 固定整体高度
+        .padding(.top, 27)
     }
 
     // MARK: - Trial Info Section
 
     private var trialInfoSection: some View {
-        VStack(spacing: 12) {
-            Text("About free trial")
-                .font(.custom("Red Hat Display", size: 24))
-                .fontWeight(.bold)
-                .foregroundColor(Color(hex: "212121"))
-
+        VStack(spacing: 32) {
+            // About free trial 标题
+            VStack(spacing: 12) {
+                Text("About free trial")
+                    .font(.custom("Red Hat Display", size: 24))
+                    .fontWeight(.bold)
+                    .textCase(.uppercase)
+                    .foregroundColor(Color(hex: "212121"))
+            }
+            
+            // Trial benefits - 根据Figma设计重新布局
             VStack(spacing: 16) {
                 TrialBenefitRow(
-                    iconName: "perspective_icon",
+                    iconName: "perspective_img_cropped",
+                    iconBackgroundColor: Color(hex: "E6FAEE"),
                     title: "No risk",
                     description: "Cancel anytime during the trial"
                 )
 
                 TrialBenefitRow(
-                    iconName: "coin_icon",
+                    iconName: "perspective_img_cropped",
+                    iconBackgroundColor: Color(hex: "FFF3E4"),
                     title: "No charges",
                     description: "No hidden charges during the trial"
                 )
 
                 TrialBenefitRow(
-                    iconName: "cancel_icon",
+                    iconName: "perspective_img_cropped",
+                    iconBackgroundColor: Color(hex: "FFEFEF"),
                     title: "Easy to cancel",
                     description: "Cancel the trial by one click from Google Play"
                 )
             }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 20)
+            .background(
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.white)
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            )
         }
-        .padding(.top, 32)
+        .padding(.top, 45)
         .padding(.horizontal, 17)
     }
     
@@ -577,45 +733,36 @@ struct PaywallView: View {
     // MARK: - Terms Section
     
     private var termsSection: some View {
-        VStack(spacing: 12) {
-            Text("paywall.subscription_terms".localized)
-                .font(.seniorCaption)
-                .fontWeight(.semibold)
-                .foregroundColor(.seniorText)
+        VStack(spacing: 20) {
+            // Subscription Terms 标题
+            Text("Subscription Terms")
+                .font(.custom("Afacad", size: 25))
+                .fontWeight(.bold)
+                .foregroundColor(Color(hex: "000000"))
             
-            VStack(alignment: .leading, spacing: 6) {
-                Text("paywall.term1".localized)
-                Text("paywall.term2".localized)
-                Text("paywall.term3".localized)
+            // 条款说明文本
+            VStack(alignment: .leading, spacing: 8) {
+                Text("· Subscriptions will auto-renew unless cancelled 24 hours before the current period ends")
+                Text("· You can manage subscriptions and turn off auto-renewval in Apple ID settings")
+                Text("· Cancelling during the free trial period will not incur any charges")
             }
-            .font(.caption)
-            .foregroundColor(.seniorSecondary)
+            .font(.custom("Poppins", size: 15))
+            .foregroundColor(Color(hex: "000000").opacity(0.61))
+            .lineSpacing(4)
             .multilineTextAlignment(.leading)
+            .padding(.horizontal, 20)
             
-            HStack(spacing: 20) {
-                Button("paywall.privacy_policy".localized) { 
-                    // 直接显示隐私政策页面
-                    Logger.ui.info("用户从Paywall点击隐私政策")
-                    showingPrivacyPolicy = true
+            // 底部链接
+            Text("Privacy Policy             Terms of Use             Restore Purchase")
+                .font(.custom("Inter", size: 12))
+                .fontWeight(.bold)
+                .foregroundColor(Color(hex: "1FB3DD"))
+                .multilineTextAlignment(.center)
+                .onTapGesture {
+                    // 可以在这里处理点击事件，区分不同的链接
                 }
-                .font(.caption)
-                .foregroundColor(.seniorPrimary)
-                
-                Button("paywall.terms_of_use".localized) { 
-                    // 直接显示使用条款页面
-                    Logger.ui.info("用户从Paywall点击使用条款")
-                    showingTermsOfUse = true
-                }
-                .font(.caption)
-                .foregroundColor(.seniorPrimary)
-                
-                Button("paywall.restore_purchase".localized) { 
-                    handleRestorePurchases()
-                }
-                .font(.caption)
-                .foregroundColor(.seniorPrimary)
-            }
         }
+        .padding(.top, 45)
         .padding(.bottom, 30)
     }
     
@@ -753,68 +900,10 @@ struct PaywallView: View {
         }
     }
     
-    // MARK: - Pro Features Data
 
-    private let proFeatures = [
-        ProFeature(icon: "Free", title: "Limited swape chances", description: "Limited swape chances"),
-        ProFeature(icon: "Free", title: "More Ads", description: "More Ads"),
-        ProFeature(icon: "Free", title: "No Analysis of memory professionals", description: "No Analysis of memory professionals"),
-        ProFeature(icon: "Pro", title: "Unlimited swape chances", description: "Unlimited swape chances"),
-        ProFeature(icon: "Pro", title: "No ads", description: "No ads"),
-        ProFeature(icon: "Pro", title: "Professional memory analysis keeps your phone safe and healthy", description: "Professional memory analysis keeps your phone safe and healthy"),
-    ]
 }
 
-// MARK: - Pro Feature Model
 
-struct ProFeature {
-    let icon: String
-    let title: String
-    let description: String
-}
-
-// MARK: - Feature Row Component
-
-struct FeatureRow: View {
-    let feature: ProFeature
-    let delay: Double
-    
-    var body: some View {
-        HStack(spacing: 16) {
-            Text(feature.icon)
-                .font(.largeTitle)
-            
-            VStack(alignment: .leading, spacing: 4) {
-                Text(feature.title)
-                    .font(.seniorBody)
-                    .fontWeight(.semibold)
-                    .foregroundColor(.seniorText)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.8)
-                
-                Text(feature.description)
-                    .font(.seniorCaption)
-                    .foregroundColor(.seniorSecondary)
-                    .lineLimit(2)
-                    .minimumScaleFactor(0.8)
-            }
-            .frame(minWidth: 200, maxWidth: .infinity, alignment: .leading)
-            
-            Spacer()
-            
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
-                .foregroundColor(.seniorSuccess)
-        }
-        .padding(16)
-        .background(
-            RoundedRectangle(cornerRadius: Constants.cornerRadius)
-                .fill(Color.white)
-                .shadow(color: .gray.opacity(0.1), radius: 4, x: 0, y: 2)
-        )
-        .animation(.easeInOut(duration: 0.5).delay(delay), value: delay)
-    }
-}
 
 // MARK: - Subscription Plan Card
 
@@ -979,6 +1068,8 @@ struct VideoPlayerView: View {
         ZStack {
             if let player = player {
                 VideoPlayer(player: player)
+                    .disabled(true) // 禁止用户交互
+                    .allowsHitTesting(false) // 禁止触摸事件
                     .onAppear {
                         player.play()
                         // 设置循环播放
@@ -1048,7 +1139,7 @@ struct NewSubscriptionPlanCard: View {
                     if plan.isRecommended {
                         ZStack {
                             RoundedRectangle(cornerRadius: 10)
-                                .fill(Color(hex: "21B4DC")) // 改为蓝色
+                                .fill(Color(hex: "21B4DC")) // 还原为蓝色
                                 .frame(height: 26)
                             Text("SAVE 78%")
                                 .font(.custom("Afacad", size: 16))
@@ -1076,7 +1167,7 @@ struct NewSubscriptionPlanCard: View {
                                         .foregroundColor(Color.white)
                                         .padding(.horizontal, 8)
                                         .padding(.vertical, 3)
-                                        .background(Color(hex: "21B4DC"))
+                                        .background(Color(hex: "FFAC00"))
                                         .cornerRadius(10)
                                         .lineLimit(1)
                                         .minimumScaleFactor(0.8)
@@ -1127,91 +1218,42 @@ struct NewSubscriptionPlanCard: View {
     }
 }
 
-// MARK: - New Feature Row
 
-struct NewFeatureRow: View {
-    let feature: ProFeature
-    let delay: Double
 
+// MARK: - Feature Compare Row
+
+struct FeatureCompareRow: View {
+    let icon: String
+    let iconColor: Color
+    let text: String
+    let textColor: Color
+    
     var body: some View {
-        HStack(spacing: 8) {
-            // 图标
-            ZStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(hex: "D9D9D9").opacity(0.289))
-                    .frame(width: 44, height: 44)
+        HStack(alignment: .top, spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 21))
+                .foregroundColor(iconColor)
+                .frame(width: 21, height: 21)
+                .flexibleFrame(minWidth: 21)
 
-                if feature.icon == "Free" {
-                    // Free图标使用渐变背景和白色文字
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(
-                                LinearGradient(
-                                    gradient: Gradient(colors: [
-                                        Color(hex: "EBEBEB"),
-                                        Color(hex: "BCBCBC")
-                                    ]),
-                                    startPoint: UnitPoint(x: 0, y: 0),
-                                    endPoint: UnitPoint(x: 1, y: 1)
-                                )
-                            )
-                            .frame(width: 44, height: 44)
-
-                        Text("Free")
-                            .font(.custom("Afacad", size: 18))
-                            .fontWeight(.bold)
-                            .foregroundColor(Color.white)
-                    }
-                } else if feature.icon == "Pro" {
-                    // Pro图标使用粉色背景
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color(hex: "F695F1"))
-                            .frame(width: 44, height: 44)
-
-                        Text("Pro")
-                            .font(.custom("Afacad", size: 18))
-                            .fontWeight(.bold)
-                            .foregroundColor(Color.white)
-                    }
-                } else {
-                    Text(feature.icon)
-                        .font(.largeTitle)
-                }
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(feature.title)
-                    .font(.custom("Poppins", size: 15))
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(hex: "212121"))
-
-                Text(feature.description)
-                    .font(.custom("Poppins", size: 14))
-                    .foregroundColor(Color(hex: "7A7F8D"))
-                    .lineLimit(2)
-            }
-
-            Spacer()
-
-            // 勾选图标
-            ZStack {
-                RoundedRectangle(cornerRadius: 20)
-                    .fill(Color(hex: "F7C948"))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: "checkmark")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Color(hex: "7A6DF1"))
-            }
+            Text(text)
+                .font(.custom("Poppins", size: 16))
+                .fontWeight(.medium)
+                .foregroundColor(textColor)
+                .multilineTextAlignment(.leading)
+                .lineLimit(nil) // 移除行数限制，让文字完整显示
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.white.opacity(0.8))
-        )
-        .animation(.easeInOut(duration: 0.5).delay(delay), value: delay)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - FlexibleFrame View Modifier
+
+extension View {
+    func flexibleFrame(minWidth: CGFloat? = nil, maxWidth: CGFloat? = nil, minHeight: CGFloat? = nil, maxHeight: CGFloat? = nil) -> some View {
+        self.frame(minWidth: minWidth, maxWidth: maxWidth, minHeight: minHeight, maxHeight: maxHeight)
     }
 }
 
@@ -1219,6 +1261,7 @@ struct NewFeatureRow: View {
 
 struct TrialBenefitRow: View {
     let iconName: String
+    let iconBackgroundColor: Color
     let title: String
     let description: String
 
@@ -1227,11 +1270,12 @@ struct TrialBenefitRow: View {
             // 图标容器
             ZStack {
                 RoundedRectangle(cornerRadius: 999)
-                    .fill(getIconBackgroundColor(iconName))
+                    .fill(iconBackgroundColor)
                     .frame(width: 44, height: 44)
 
-                Image(getIconImageName(iconName))
+                Image(iconName)
                     .resizable()
+                    .aspectRatio(contentMode: .fit)
                     .frame(width: 32, height: 32)
             }
 
@@ -1248,31 +1292,6 @@ struct TrialBenefitRow: View {
             }
 
             Spacer()
-        }
-        .padding(.vertical, 12)
-        .padding(.horizontal, 16)
-        .background(
-            RoundedRectangle(cornerRadius: 8)
-                .fill(Color.white)
-                .shadow(color: Color(hex: "000000").opacity(0.1), radius: 4, x: 0, y: 2)
-        )
-    }
-
-    private func getIconBackgroundColor(_ iconName: String) -> Color {
-        switch iconName {
-        case "perspective_icon": return Color(hex: "E6FAEE")
-        case "coin_icon": return Color(hex: "FFF3E4")
-        case "cancel_icon": return Color(hex: "FFEFEF")
-        default: return Color.gray.opacity(0.2)
-        }
-    }
-
-    private func getIconImageName(_ iconName: String) -> String {
-        switch iconName {
-        case "perspective_icon": return "perspective_img"
-        case "coin_icon": return "coin_img"
-        case "cancel_icon": return "cancel_img"
-        default: return iconName
         }
     }
 }
