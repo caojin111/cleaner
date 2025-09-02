@@ -9,6 +9,7 @@ import SwiftUI
 import Foundation
 import OSLog
 import AVKit
+import AVFoundation
 
 // MARK: - Scroll Direction Enum
 
@@ -24,7 +25,16 @@ struct PaywallView: View {
     init(isFromOnboarding: Bool = false) {
         self.isFromOnboarding = isFromOnboarding
     }
-    @State private var selectedPlan: SubscriptionPlan?
+    @State private var selectedPlan: SubscriptionPlan? {
+        didSet {
+            // 强制触发UI更新
+            if let plan = selectedPlan {
+                Logger.subscription.debug("Paywall: selectedPlan已更新 - ID: \(plan.id), ProductID: \(plan.productIdentifier)")
+            } else {
+                Logger.subscription.debug("Paywall: selectedPlan已清空")
+            }
+        }
+    }
     @State private var showMainApp = false
     @State private var animateFeatures = false
     @Environment(\.dismiss) private var dismiss
@@ -48,11 +58,58 @@ struct PaywallView: View {
     @State private var scrollDirection: ScrollDirection = .none // 滚动方向
     @State private var isButtonOverlapping = false // 按钮是否重叠
     @State private var uiRefreshTrigger = false // 用于触发UI刷新的触发器
+    @State private var buttonTextUpdateTrigger = false // 专门用于触发按钮文本更新的触发器
+
+    // 计算属性 - 订阅按钮文本，根据selectedPlan的ID变化而更新
+    private var subscribeButtonText: String {
+        let _ = selectedPlan?.id // 强制依赖selectedPlan的id变化
+        return getSubscribeButtonText()
+    }
+
+    // 直接在body中使用的按钮文本计算属性
+    private var buttonText: String {
+        // 强制依赖selectedPlan的变化，确保UI更新
+        let _ = selectedPlan?.id
+        let _ = selectedPlan?.productIdentifier
+        let _ = buttonTextUpdateTrigger // 强制依赖触发器
+
+        let result: String
+        if let planId = selectedPlan?.productIdentifier {
+            switch planId {
+            case "yearly_29.99":
+                result = "Start Your Free Trial"
+            case "monthly_9.99", "weekly_2.99":
+                result = "paywall.subscribe_now".localized
+            default:
+                result = "paywall.subscribe_now".localized
+            }
+        } else {
+            result = "paywall.subscribe_now".localized
+        }
+        
+        Logger.subscription.debug("Paywall: buttonText计算 - selectedPlan: \(selectedPlan?.productIdentifier ?? "nil"), 结果: \(result)")
+        return result
+    }
 
     // 倒计时相关状态
     @State private var countdownTime: TimeInterval = 3600 // 1小时 = 3600秒
     @State private var countdownTimer: Timer? = nil
     @State private var isCountdownActive = false
+
+    // 倒计时持久化相关常量
+    private let countdownEndTimeKey = "paywall_countdown_end_time"
+
+    // 计算剩余时间
+    private var remainingTime: TimeInterval {
+        let now = Date().timeIntervalSince1970
+        let endTime = UserDefaults.standard.double(forKey: countdownEndTimeKey)
+
+        if endTime > now {
+            return endTime - now
+        } else {
+            return 0 // 时间已到
+        }
+    }
     
     var body: some View {
         // 纯全屏视图，完全覆盖整个屏幕
@@ -123,7 +180,7 @@ struct PaywallView: View {
                             }) {
                                 VStack(spacing: 8) {
                                     HStack {
-                                        Text(selectedPlan?.trialDays != nil ? "paywall.start_free_trial".localized : "paywall.subscribe_now".localized)
+                                        Text(buttonText)
                                             .font(.seniorBody)
                                             .fontWeight(.bold)
                                         
@@ -238,12 +295,16 @@ struct PaywallView: View {
             if let yearlyPlan = cachedPlans.first(where: { $0.productIdentifier == "yearly_29.99" }) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     selectedPlan = yearlyPlan
+                    buttonTextUpdateTrigger.toggle() // 强制触发按钮文本更新
+                    Logger.subscription.debug("Paywall: 初始化设置selectedPlan - ID: \(yearlyPlan.id), ProductID: \(yearlyPlan.productIdentifier)")
                 }
                 Logger.subscription.info("默认选中年度订阅计划: \(yearlyPlan.title)")
             } else if !cachedPlans.isEmpty {
                 // 如果找不到年度计划，选择第一个计划
                 withAnimation(.easeInOut(duration: 0.3)) {
                     selectedPlan = cachedPlans[0]
+                    buttonTextUpdateTrigger.toggle() // 强制触发按钮文本更新
+                    Logger.subscription.debug("Paywall: 初始化设置selectedPlan - ID: \(cachedPlans[0].id), ProductID: \(cachedPlans[0].productIdentifier)")
                 }
                 Logger.subscription.info("默认选中第一个订阅计划: \(cachedPlans[0].title)")
             }
@@ -261,12 +322,14 @@ struct PaywallView: View {
             if let yearlyPlan = cachedPlans.first(where: { $0.productIdentifier == "yearly_29.99" }) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     selectedPlan = yearlyPlan
+                    buttonTextUpdateTrigger.toggle() // 强制触发按钮文本更新
                 }
                 Logger.subscription.info("产品加载完成，选中年度订阅计划: \(yearlyPlan.title)")
             } else if !cachedPlans.isEmpty && selectedPlan == nil {
                 // 如果找不到年度计划且当前没有选中方案，选择第一个计划
                 withAnimation(.easeInOut(duration: 0.3)) {
                     selectedPlan = cachedPlans[0]
+                    buttonTextUpdateTrigger.toggle() // 强制触发按钮文本更新
                 }
                 Logger.subscription.info("产品加载完成，选中第一个订阅计划: \(cachedPlans[0].title)")
             }
@@ -371,12 +434,13 @@ struct PaywallView: View {
                     .foregroundColor(Color(hex: "000000").opacity(0.61))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 24)
-                    .offset(y: -3) // 向上移动3像素
+                    .offset(y: -11) // 向上移动11像素
 
                 Text("paywall.title".localized)
-                    .font(.custom("Afacad", size: 40))
+                    .font(.custom("Gloock-Regular", size: 40))
                     .fontWeight(.bold)
                     .foregroundColor(Color(hex: "000000"))
+                    .offset(y: -8) // 向上移动8像素
             }
             .padding(.top, 10) // 减少顶部空白
         }
@@ -457,6 +521,8 @@ struct PaywallView: View {
                             onSelect: {
                                 withAnimation(.easeInOut(duration: 0.3)) {
                                     selectedPlan = plan
+                                    buttonTextUpdateTrigger.toggle() // 强制触发按钮文本更新
+                                    Logger.subscription.debug("Paywall: 设置selectedPlan - ID: \(plan.id), ProductID: \(plan.productIdentifier)")
                                 }
                                 Logger.subscription.info("选择订阅方案: \(plan.title)")
                             }
@@ -492,8 +558,7 @@ struct PaywallView: View {
                 VStack(spacing: 24) {
                     // 标题文本
                     Text("Unlock all features for the best\ncleaning experience")
-                        .font(.custom("Afacad", size: 25)) // 缩小5号：30→25
-                        .fontWeight(.bold)
+                        .font(.custom("Gloock-Regular", size: 25)) // 使用Gloock字体
                         .foregroundColor(Color(hex: "212121"))
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
@@ -523,7 +588,7 @@ struct PaywallView: View {
                                                 .font(.custom("Afacad", size: 26))
                                                 .fontWeight(.bold)
                                                 .foregroundColor(Color(hex: "212121"))
-                                                .offset(y: 2) // 向下移动7像素，让文字在图标内
+                                                .offset(y: -1) // 向上移动3像素，让文字在图标内
                                         }
                                         .padding(.top, 16)
                                         .offset(x: -20, y: -10) // 向左移动10像素，向上移动30像素
@@ -587,7 +652,7 @@ struct PaywallView: View {
                                                 .font(.custom("Afacad", size: 26))
                                                 .fontWeight(.bold)
                                                 .foregroundColor(Color.white)
-                                                .offset(y: 2) // 向下移动7像素，让文字在图标内
+                                                .offset(y: -1) // 向上移动3像素，让文字在图标内
                                         }
                                         .padding(.top, 16)
                                         .offset(x: -20, y: -30) // 向左移动10像素，向上移动30像素
@@ -637,7 +702,7 @@ struct PaywallView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(maxWidth: min(180, geometry.size.width * 0.25 * 1.5), maxHeight: 210) // 变大1.5倍
-                                .offset(y: 120) // 向下移动20像素
+                                .offset(y: 128) // 向下移动28像素
                         }
                     }
                 }
@@ -705,8 +770,8 @@ struct PaywallView: View {
             Button(action: {
                 handleSubscription()
             }) {
-                Text("START YOUR FREE TRIAL")
-                    .font(.custom("Afacad", size: 20)) // 增大字体确保完整显示
+                Text(buttonText)
+                    .font(.custom("Afacad", size: 25)) // 增大5号到25
                     .fontWeight(.bold)
                     .foregroundColor(Color.white)
                     .lineLimit(1)
@@ -776,7 +841,23 @@ struct PaywallView: View {
 
     private func startCountdown() {
         countdownTimer?.invalidate()
-        countdownTime = 3600 // 重置为1小时
+
+        // 检查是否有持久化的倒计时
+        let savedEndTime = UserDefaults.standard.double(forKey: countdownEndTimeKey)
+        let now = Date().timeIntervalSince1970
+
+        if savedEndTime > now {
+            // 还有剩余时间，使用剩余时间
+            countdownTime = savedEndTime - now
+            Logger.subscription.debug("Paywall: 使用持久化倒计时，剩余时间: \(Int(countdownTime))秒")
+        } else {
+            // 时间已到或首次使用，重新开始1小时倒计时
+            countdownTime = 3600
+            let newEndTime = now + 3600
+            UserDefaults.standard.set(newEndTime, forKey: countdownEndTimeKey)
+            Logger.subscription.debug("Paywall: 开始新的倒计时")
+        }
+
         isCountdownActive = true
 
         countdownTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { timer in
@@ -785,6 +866,9 @@ struct PaywallView: View {
             } else {
                 // 倒计时结束，重置为1小时
                 countdownTime = 3600
+                let newEndTime = Date().timeIntervalSince1970 + 3600
+                UserDefaults.standard.set(newEndTime, forKey: countdownEndTimeKey)
+                Logger.subscription.debug("Paywall: 倒计时重置，开始新的1小时")
             }
         }
     }
@@ -803,6 +887,12 @@ struct PaywallView: View {
     
     private func getPlansWithRealPrices() -> [SubscriptionPlan] {
         let basePlans = SubscriptionPlan.getPlans()
+
+        // 添加调试日志
+        for plan in basePlans {
+            Logger.subscription.debug("Paywall: 原始方案 - ID: \(plan.productIdentifier), trialDays: \(String(describing: plan.trialDays))")
+        }
+
         return basePlans.map { plan in
             // 根据产品ID获取真实价格
             let realPrice: String
@@ -816,9 +906,9 @@ struct PaywallView: View {
             default:
                 realPrice = plan.price
             }
-            
-            // 创建新的计划实例，使用真实价格，但保持原有的id
-            return SubscriptionPlan(
+
+            // 创建新的计划实例，使用真实价格，但保持原有的id和trialDays
+            let newPlan = SubscriptionPlan(
                 id: plan.id,
                 title: plan.title,
                 price: realPrice,
@@ -829,6 +919,10 @@ struct PaywallView: View {
                 productIdentifier: plan.productIdentifier,
                 trialDays: plan.trialDays
             )
+
+            Logger.subscription.debug("Paywall: 更新后方案 - ID: \(newPlan.productIdentifier), trialDays: \(String(describing: newPlan.trialDays)), price: \(newPlan.price)")
+
+            return newPlan
         }
     }
     
@@ -899,7 +993,48 @@ struct PaywallView: View {
             }
         }
     }
-    
+
+    private func getSubscribeButtonText() -> String {
+        guard let selectedPlan = selectedPlan else {
+            Logger.subscription.debug("Paywall: 未选择订阅方案，返回默认文本")
+            return "paywall.subscribe_now".localized
+        }
+
+        Logger.subscription.debug("Paywall: 当前选中方案 - ID: \(selectedPlan.productIdentifier)")
+
+        // 根据产品ID直接判断按钮文本
+        switch selectedPlan.productIdentifier {
+        case "yearly_29.99":
+            Logger.subscription.debug("Paywall: 年订阅，显示'start_free_trial'")
+            return "paywall.start_free_trial".localized
+        case "monthly_9.99":
+            Logger.subscription.debug("Paywall: 月订阅，显示'subscribe_now'")
+            return "paywall.subscribe_now".localized
+        case "weekly_2.99":
+            Logger.subscription.debug("Paywall: 周订阅，显示'subscribe_now'")
+            return "paywall.subscribe_now".localized
+        default:
+            Logger.subscription.debug("Paywall: 未知订阅类型，显示'subscribe_now'")
+            return "paywall.subscribe_now".localized
+        }
+    }
+
+    // 在body中直接调用的函数，确保每次渲染都会重新计算
+    private func getButtonTextForSelectedPlan() -> String {
+        guard let selectedPlan = selectedPlan else {
+            return "paywall.subscribe_now".localized
+        }
+
+        // 根据产品ID直接判断按钮文本
+        switch selectedPlan.productIdentifier {
+        case "yearly_29.99":
+            return "paywall.start_free_trial".localized
+        case "monthly_9.99", "weekly_2.99":
+            return "paywall.subscribe_now".localized
+        default:
+            return "paywall.subscribe_now".localized
+        }
+    }
 
 }
 
@@ -1044,7 +1179,7 @@ struct CountdownBlock: View {
             // 数字
             Text(number)
                 .font(.custom("Poppins", size: 35))
-                .fontWeight(.semibold)
+                .fontWeight(.bold) // 加粗字体
                 .foregroundColor(Color(hex: "21B4DC"))
 
             // 标签
@@ -1071,7 +1206,11 @@ struct VideoPlayerView: View {
                     .disabled(true) // 禁止用户交互
                     .allowsHitTesting(false) // 禁止触摸事件
                     .onAppear {
+                        // 确保视频静音
+                        player.isMuted = true
+                        player.volume = 0.0
                         player.play()
+
                         // 设置循环播放
                         NotificationCenter.default.addObserver(
                             forName: .AVPlayerItemDidPlayToEndTime,
@@ -1079,7 +1218,21 @@ struct VideoPlayerView: View {
                             queue: .main
                         ) { _ in
                             player.seek(to: .zero)
+                            // 重新确保静音
+                            player.isMuted = true
+                            player.volume = 0.0
                             player.play()
+                        }
+                    }
+                    // 添加音频轨道监听，确保静音
+                    .onChange(of: player.currentItem) { newItem in
+                        if let item = newItem {
+                            // 确保所有音频轨道都被静音
+                            for track in item.tracks {
+                                if track.assetTrack?.mediaType == .audio {
+                                    track.isEnabled = false
+                                }
+                            }
                         }
                     }
                     .onDisappear {
@@ -1090,8 +1243,19 @@ struct VideoPlayerView: View {
                 // 加载视频
                 Color.clear
                     .onAppear {
-                        if let videoURL = Bundle.main.url(forResource: "9234A201-7114-4DF3-879D-365C57E7BF81", withExtension: "MP4") {
+                        if let videoURL = Bundle.main.url(forResource: "cljux-fd6hd", withExtension: "mp4") {
                             player = AVPlayer(url: videoURL)
+                            // 设置视频静音
+                            player?.isMuted = true
+                            player?.volume = 0.0
+
+                            // 设置音频会话为静音模式
+                            do {
+                                try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [])
+                                try AVAudioSession.sharedInstance().setActive(true)
+                            } catch {
+                                Logger.subscription.debug("设置音频会话失败: \(error.localizedDescription)")
+                            }
                         }
                     }
             }

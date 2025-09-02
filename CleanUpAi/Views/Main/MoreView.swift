@@ -51,7 +51,7 @@ struct MoreView: View {
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color.white, for: .navigationBar)
         }
-        .sheet(isPresented: $showingPaywall) {
+        .fullScreenCover(isPresented: $showingPaywall) {
             PaywallView(isFromOnboarding: false)
         }
         .sheet(isPresented: $showingPrivacyPolicy) {
@@ -434,7 +434,7 @@ struct MoreMenuItem: View {
                 // 文本信息 - 增加最小宽度确保文本完整显示
                 VStack(alignment: .leading, spacing: 2) {
                     Text(title)
-                        .font(.seniorBody)
+                        .font(.system(size: 20)) // 缩小10号，从seniorBody(25)改为15
                         .fontWeight(.semibold)
                         .foregroundColor(.seniorText)
                         .lineLimit(1)
@@ -494,7 +494,7 @@ struct MoreMenuItemWithToggle: View {
             // 文本信息 - 增加最小宽度确保文本完整显示
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.seniorBody)
+                    .font(.system(size: 20)) // 缩小10号，从seniorBody(25)改为15
                     .fontWeight(.semibold)
                     .foregroundColor(.seniorText)
                     .lineLimit(1)

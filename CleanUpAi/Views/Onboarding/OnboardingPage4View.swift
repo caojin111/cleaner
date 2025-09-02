@@ -39,6 +39,9 @@ extension Color {
 struct OnboardingPage4View: View {
     @Binding var currentPage: Int
     @Binding var showPaywall: Bool
+    var initialPhotoCount: Int = 0
+    var initialDuplicates: Int = 0
+    var isAnalysisComplete: Bool = false
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
     @State private var photoCount: Int = 0
     @State private var actualDuplicates: Int = 0
@@ -61,7 +64,7 @@ struct OnboardingPage4View: View {
                         .font(.system(size: 30, weight: .semibold, design: .rounded))
                         .foregroundColor(Color(hex: "000000"))
                     Text("onboarding.page4.title".localized)
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.custom("Gloock-Regular", size: 32)) // 使用Gloock字体
                         .foregroundColor(.black)
                         .lineLimit(1)
                         .minimumScaleFactor(0.8)
@@ -116,7 +119,15 @@ struct OnboardingPage4View: View {
             }
         }
         .onAppear {
-            startPhotoAnalysis()
+            // 如果已经预先分析完成，直接使用预分析结果
+            if isAnalysisComplete {
+                photoCount = initialPhotoCount
+                actualDuplicates = initialDuplicates
+                Logger.analytics.info("使用预分析结果: 照片总数=\(initialPhotoCount), 重复数=\(initialDuplicates)")
+            } else {
+                // 否则进行实时分析
+                startPhotoAnalysis()
+            }
             // 页面出现动画
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
                 pageVisible = true
@@ -334,6 +345,9 @@ struct StatRow: View {
 #Preview {
     OnboardingPage4View(
         currentPage: .constant(3),
-        showPaywall: .constant(false)
+        showPaywall: .constant(false),
+        initialPhotoCount: 0,
+        initialDuplicates: 0,
+        isAnalysisComplete: false
     )
 } 

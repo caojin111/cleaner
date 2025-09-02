@@ -33,17 +33,27 @@ struct CleanUpAiApp: App {
 class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDelegate {
     
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        
+
         // 配置Firebase
         FirebaseApp.configure()
-        
+
         // 设置通知代理
         UNUserNotificationCenter.current().delegate = self
-        
+
         // 测试权限本地化
         PermissionManager.shared.testPermissionLocalization()
-        
+
+        // 重置Paywall倒计时（只有在app完全重新启动时）
+        resetPaywallCountdown()
+
         return true
+    }
+
+    // 重置Paywall倒计时
+    private func resetPaywallCountdown() {
+        // 清除UserDefaults中的倒计时数据，让下次打开Paywall时重新开始
+        UserDefaults.standard.removeObject(forKey: "paywall_countdown_end_time")
+        print("Paywall: App启动时重置倒计时")
     }
     
     // MARK: - UNUserNotificationCenterDelegate

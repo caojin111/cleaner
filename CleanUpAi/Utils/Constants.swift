@@ -62,7 +62,7 @@ struct Constants {
 extension Font {
     static let seniorLargeTitle = Font.system(size: 32, weight: .bold)
     static let seniorTitle = Font.system(size: 24, weight: .semibold)
-    static let seniorBody = Font.system(size: 20, weight: .regular)
+    static let seniorBody = Font.system(size: 25, weight: .regular)
     static let seniorCaption = Font.system(size: 16, weight: .regular)
 }
 

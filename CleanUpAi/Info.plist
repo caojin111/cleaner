@@ -104,5 +104,9 @@
 	</dict>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Gloock-Regular.ttf</string>
+	</array>
 </dict>
 </plist>

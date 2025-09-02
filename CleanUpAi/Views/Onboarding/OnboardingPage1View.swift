@@ -16,6 +16,7 @@ struct OnboardingPage1View: View {
     @State private var animateImage = false
     @State private var animateMinText = false
     @State private var animateButton = false
+    @State private var isContinueButtonDisabled = false // 防止连点保护
     
     var body: some View {
         GeometryReader { geometry in
@@ -26,13 +27,13 @@ struct OnboardingPage1View: View {
                 // 主标题文字 - 精确位置：x: 15, y: 422, width: 367, height: 97
                 HStack(spacing: 0) {
                     Text("Just ")
-                        .font(.system(size: 30, weight: .regular, design: .default))
+                        .font(.custom("Gloock-Regular", size: 30))
                         .foregroundColor(.black)
                     + Text("1 min")
-                        .font(.system(size: 39, weight: .regular, design: .default)) // 30 + 9 = 39
+                        .font(.custom("Gloock-Regular", size: 39)) // 30 + 9 = 39
                         .foregroundColor(Color(red: 0.0, green: 0.561, blue: 0.773)) // #008FC5
                     + Text(" a day,\nclean your photo library")
-                        .font(.system(size: 30, weight: .regular, design: .default))
+                        .font(.custom("Gloock-Regular", size: 30))
                         .foregroundColor(.black)
                 }
                 .multilineTextAlignment(.center)
@@ -58,27 +59,37 @@ struct OnboardingPage1View: View {
                     .font(.system(size: 40, weight: .regular, design: .default))
                     .foregroundColor(.white)
                     .frame(width: 103.99, height: 56.96)
-                    .position(x: 165 + 103.99/2, y: 219 + 56.96/2) // 从239调整到219，向上移动20像素
+                    .position(x: 180 + 103.99/2, y: 219 + 56.96/2) // 向右移动7像素，从239调整到219，向上移动20像素
                     .opacity(animateMinText ? 1 : 0)
                     .scaleEffect(animateMinText ? 1 : 0.8)
+                    .rotationEffect(.degrees(-9)) // 逆时针旋转10度
                     .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2), value: animateMinText)
                 
-                // Continue按钮 - 调整位置确保在手机屏幕上完整显示
+                // Continue按钮 - 保持原有位置，统一字体样式
                 Button(action: {
+                    // 防止连点保护
+                    guard !isContinueButtonDisabled else { return }
+                    isContinueButtonDisabled = true
+
                     withAnimation(.easeInOut(duration: 0.3)) {
                         currentPage += 1
                     }
                     Logger.logPageNavigation(from: "Onboarding-1", to: "Onboarding-2")
+
+                    // 1秒后重新启用按钮
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        isContinueButtonDisabled = false
+                    }
                 }) {
                     RoundedRectangle(cornerRadius: 50)
-                        .fill(Color(red: 0.043, green: 0.663, blue: 0.831)) // #0BA9D4
-                        .frame(width: 267, height: 52) // 按钮尺寸
+                        .fill(Color(hex: "0BA9D4"))
+                        .frame(width: 267, height: 52)
                         .overlay(
                             Text("onboarding.page1.continue".localized)
-                                .font(.system(size: 25, weight: .regular, design: .default))
+                                .font(.system(size: 25, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
-                                .frame(width: 150.0, height: 22) // Continue文字尺寸
+                                .frame(width: 150.0, height: 22)
                                 .onAppear {
                                     // 调试信息
                                     let continueText = "onboarding.page1.continue".localized
@@ -86,7 +97,8 @@ struct OnboardingPage1View: View {
                                 }
                         )
                 }
-                .position(x: 62 + 267/2, y: 700) // 扩大触摸区域 // 从731调整到650，确保按钮完整显示
+                .position(x: 62 + 267/2, y: 670)
+                .contentShape(RoundedRectangle(cornerRadius: 50))
                 .opacity(animateButton ? 1 : 0)
                 .offset(y: animateButton ? 0 : 20)
                 .animation(.easeOut(duration: 0.6).delay(0.4), value: animateButton)

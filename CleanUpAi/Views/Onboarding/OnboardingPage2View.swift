@@ -22,6 +22,7 @@ struct OnboardingPage2View: View {
     @State private var animatePhotoCard = false
     @State private var animateNotificationCard = false
     @State private var animateButton = false
+    @State private var isContinueButtonDisabled = false // 防止连点保护
     
     var body: some View {
         ZStack {
@@ -40,7 +41,7 @@ struct OnboardingPage2View: View {
             
             // 主标题 - 精确位置：x: 38, y: 257, width: 324, height: 44
             Text("onboarding.page2.title".localized)
-                .font(.system(size: 30, weight: .bold, design: .default)) // 从40改为30
+                .font(.custom("Gloock-Regular", size: 30)) // 使用Gloock字体
                 .foregroundColor(.black)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
@@ -124,18 +125,18 @@ struct OnboardingPage2View: View {
             // 通知权限卡片
             ZStack {
                 Group {
-                // 图标背景 - 精确位置：x: 27, y: 532, width: 50, height: 50
+                // 图标背景 - 精确位置：x: 27, y: 512, width: 50, height: 50 (上移20像素)
                 RoundedRectangle(cornerRadius: 10)
                     .fill(Color(red: 0.043, green: 0.663, blue: 0.831, opacity: 0.25))
                     .frame(width: 50, height: 50)
-                    .position(x: 27 + 50/2, y: 482 + 50/2) // y: 532 - 50
-                
+                    .position(x: 27 + 50/2, y: 462 + 50/2) // y: 512 - 50，上移20像素
+
                 // 通知图标 - 使用Figma图片，与蓝色底块完全重叠
                 Image("ob2_notification_icon")
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .frame(width: 50/1.2, height: 50/1.5) // 缩小1.2倍
-                    .position(x: 27 + 50/2, y: 482 + 50/2) // y: 532 - 50，与底块位置完全重叠
+                    .position(x: 27 + 50/2, y: 462 + 50/2) // y: 512 - 50，与底块位置完全重叠，上移20像素
                 }
                 .opacity(animateNotificationCard ? 1 : 0)
                 .offset(x: animateNotificationCard ? 0 : -50)
@@ -144,13 +145,13 @@ struct OnboardingPage2View: View {
             
             // 通知权限文本
             HStack(spacing: 0) {
-                // 标题 - 精确位置：x: 93, y: 534, width: 88, height: 22
+                // 标题 - 精确位置：x: 93, y: 514, width: 88, height: 22 (上移20像素)
                 Text("onboarding.page2.notification_permission".localized)
                     .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
                     .foregroundColor(.black)
                     .multilineTextAlignment(.leading)
                     .frame(width: 130.0, height: 22)
-                    .position(x: 98 + 88/2, y: 484 + 22/2) // y: 534 - 50
+                    .position(x: 98 + 88/2, y: 464 + 22/2) // y: 514 - 50，上移20像素
                 
                 Spacer()
                 
@@ -160,15 +161,15 @@ struct OnboardingPage2View: View {
                     Image("ob2_status_bg")
                         .resizable()
                         .frame(width: 80, height: 30)
-                        .position(x: 304 + 80/2, y: 483 + 22/2) // y: 533 - 50
-                    
+                        .position(x: 304 + 80/2, y: 463 + 22/2) // y: 513 - 50，上移20像素
+
                     // 状态文本
                     Text(permissionManager.getPermissionStatusText(for: "notifications"))
                         .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
                         .foregroundColor(.black)
                         .multilineTextAlignment(.trailing)
                         .frame(width: 80, height: 22)
-                        .position(x: 304 + 80/2, y: 483 + 22/2) // y: 533 - 50
+                        .position(x: 304 + 80/2, y: 463 + 22/2) // y: 513 - 50，上移20像素
                 }
             }
             
@@ -177,31 +178,45 @@ struct OnboardingPage2View: View {
                 .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
                 .foregroundColor(Color.black.opacity(0.63))
                 .frame(width: 195, height: 22)
-                .position(x: 90 + 195/2, y: 511 + 22/2) // y: 561 - 50
+                .position(x: 90 + 195/2, y: 491 + 22/2) // y: 541 - 50，上移20像素
             
-            // Continue按钮 - 与第一页保持一致的规格
+            // Continue按钮 - 保持原有位置，统一字体样式
                             Button(action: {
+                    // 防止连点保护
+                    guard !isContinueButtonDisabled else { return }
+                    isContinueButtonDisabled = true
+
                     if permissionManager.hasPhotoLibraryAccess {
                         withAnimation(.easeInOut(duration: 0.3)) {
                             currentPage += 1
                         }
                         Logger.logPageNavigation(from: "Onboarding-2", to: "Onboarding-3")
+
+                        // 1秒后重新启用按钮
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            isContinueButtonDisabled = false
+                        }
                     } else {
                         requestPermissions()
+                        // 权限请求完成后重新启用按钮
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            isContinueButtonDisabled = false
+                        }
                     }
                 }) {
                     RoundedRectangle(cornerRadius: 50)
-                        .fill(Color(red: 0.043, green: 0.663, blue: 0.831)) // #0BA9D4
-                        .frame(width: 267, height: 52) // 按钮尺寸
+                        .fill(Color(hex: "0BA9D4"))
+                        .frame(width: 267, height: 52)
                         .overlay(
                             Text(permissionManager.hasPhotoLibraryAccess ? "onboarding.page2.continue".localized : "onboarding.page2.granted".localized)
-                                .font(.system(size: 25, weight: .regular, design: .default))
+                                .font(.system(size: 25, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
-                                .frame(width: 150.0, height: 22) // Continue文字尺寸，与第一页一致
+                                .frame(width: 150.0, height: 22)
                         )
                 }
-                .position(x: 62 + 267/2, y: 700) // 扩大触摸区域 // 与第一页保持一致的位置
+                .position(x: 62 + 267/2, y: 670)
+                .contentShape(RoundedRectangle(cornerRadius: 50))
                 .opacity(animateButton ? 1 : 0)
                 .offset(y: animateButton ? 0 : 20)
                 .animation(.easeOut(duration: 0.6).delay(0.5), value: animateButton)

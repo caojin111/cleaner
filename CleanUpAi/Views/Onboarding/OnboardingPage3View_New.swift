@@ -5,9 +5,11 @@ import Photos
 
 struct OnboardingPage3View_New: View {
     @Binding var currentPage: Int
+    var onPrepareAnalysis: (() -> Void)? = nil
     @State private var animatePhotos = false
     @State private var randomPhotos: [UIImage] = []
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
+    @State private var isContinueButtonDisabled = false // 防止连点保护
     
     var body: some View {
         GeometryReader { geometry in
@@ -32,7 +34,7 @@ struct OnboardingPage3View_New: View {
                 
                 // 标题文本
                 Text("onboarding.page3.title".localized)
-                    .font(.system(size: 30, weight: .bold))
+                    .font(.custom("Gloock-Regular", size: 30))
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .frame(width: 324, height: 44)
@@ -46,25 +48,37 @@ struct OnboardingPage3View_New: View {
                     .frame(width: 266, height: 44)
                     .position(x: geometry.size.width / 2, y: 540) // y: 600 - 60
                 
-                // Continue按钮 - 与OB-1、OB-2保持一致
+                // Continue按钮 - 保持原有位置，统一字体样式
                 Button(action: {
+                    // 防止连点保护
+                    guard !isContinueButtonDisabled else { return }
+                    isContinueButtonDisabled = true
+
+                    // 在跳转前开始分析
+                    onPrepareAnalysis?()
                     withAnimation(.easeInOut(duration: 0.3)) {
                         currentPage += 1
                     }
                     Logger.logPageNavigation(from: "Onboarding-3", to: "Onboarding-4")
+
+                    // 1秒后重新启用按钮
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                        isContinueButtonDisabled = false
+                    }
                 }) {
-                    Text("onboarding.page3.continue".localized)
-                        .font(.system(size: 25, weight: .regular))
-                        .foregroundColor(.white)
-                        .multilineTextAlignment(.center)
-                        .frame(width: 150.0, height: 22)
-                }
-                .frame(width: 267, height: 52)
-                .background(
                     RoundedRectangle(cornerRadius: 50)
-                        .fill(Color(red: 0.043, green: 0.663, blue: 0.831)) // #0BA9D4
-                )
-                .position(x: 62 + 267/2, y: 700)
+                        .fill(Color(hex: "0BA9D4"))
+                        .frame(width: 267, height: 52)
+                        .overlay(
+                            Text("onboarding.page3.continue".localized)
+                                .font(.system(size: 25, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white)
+                                .multilineTextAlignment(.center)
+                                .frame(width: 150.0, height: 22)
+                        )
+                }
+                .position(x: 62 + 267/2, y: 670)
+                .contentShape(RoundedRectangle(cornerRadius: 50))
             }
         }
         .onAppear {

@@ -30,10 +30,12 @@ struct OnboardingTransitionView_New: View {
                             Group {
                                 if !isExiting {
                                     Path { path in
-                                        // 外层矩形
-                                        path.addRect(CGRect(x: 0, y: 0, width: 410, height: 300))
+                                        // 外层矩形 - 使用屏幕宽度适配不同机型
+                                        let screenWidth = geometry.size.width
+                                        path.addRect(CGRect(x: 0, y: 0, width: screenWidth, height: 300))
                                         // 减去中间圆角矩形
-                                        path.addRoundedRect(in: CGRect(x: (410-300)/2-4, y: (300-300)/2, width: 300, height: 300), cornerRadii: RectangleCornerRadii(topLeading: 10, bottomLeading: 10, bottomTrailing: 10, topTrailing: 10))
+                                        let contentWidth: CGFloat = min(300, screenWidth - 20) // 最大300，最小留10像素边距
+                                        path.addRoundedRect(in: CGRect(x: (screenWidth-contentWidth)/2, y: (300-contentWidth)/2, width: contentWidth, height: contentWidth), cornerRadii: RectangleCornerRadii(topLeading: 10, bottomLeading: 10, bottomTrailing: 10, topTrailing: 10))
                                     }
                                     .fill(Color.white, style: FillStyle(eoFill: true))
                                 }
@@ -44,7 +46,7 @@ struct OnboardingTransitionView_New: View {
                 
                 // 标题文本
                 Text("onboarding.transition.analyzing".localized)
-                    .font(.system(size: 28, weight: .bold))
+                    .font(.custom("Gloock-Regular", size: 28)) // 使用Gloock字体
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .frame(width: 324, height: 44)
