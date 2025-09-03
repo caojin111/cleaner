@@ -3,7 +3,7 @@
     "app": {
       "name": "CleanUp AI",
       "developer": "Made with LazyCat",
-      "version": "v1.2.0"
+      "version": "v1.2.1"
     },
     "navigation": {
       "photos": "Photos",
@@ -321,7 +321,7 @@
     "app": {
       "name": "CleanUp AI",
       "developer": "Made with LazyCat",
-      "version": "v1.2.0"
+      "version": "v1.2.1"
     },
     "navigation": {
       "photos": "照片",

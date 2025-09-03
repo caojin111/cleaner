@@ -51,6 +51,10 @@
 		<string>en</string>
 		<string>zh-Hans</string>
 	</array>
+	<key>CFBundleShortVersionString</key>
+	<string>1.2.1</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
 	<key>MinimumOSVersion</key>
 	<string>15.0</string>
 	<key>NSAppTransportSecurity</key>
