@@ -24,7 +24,7 @@ struct OnboardingPage1View: View {
                 // 背景
                 Color.white.ignoresSafeArea()
                 
-                // 主标题文字 - 精确位置：x: 15, y: 422, width: 367, height: 97
+                // 主标题文字 - 自适应居中定位
                 HStack(spacing: 0) {
                     Text("Just ")
                         .font(.custom("Gloock-Regular", size: 30))
@@ -38,34 +38,35 @@ struct OnboardingPage1View: View {
                 }
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
-                .frame(width: 367, height: 97)
-                .position(x: 15 + 367/2, y: 350 + 97/2)
+                .frame(width: min(geometry.size.width * 0.9, 367), height: 97) // 自适应宽度，最多367px
+                .position(x: geometry.size.width / 2, y: 350 + 97/2)
                 .opacity(animateTitle ? 1 : 0)
                 .offset(y: animateTitle ? 0 : 20)
                 .animation(.easeOut(duration: 0.6).delay(0.3), value: animateTitle)
                 
-                // 限时优惠图片 - 精确位置：x: 86, y: 180, width: 230, height: 191
+                // 限时优惠图片 - 自适应居中定位
                 Image("ob1_limited_offer")
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(width: 230, height: 191)
-                    .position(x: 86 + 230/2, y: 160 + 191/2) // 从180调整到160，向上移动20像素
+                    .frame(width: min(geometry.size.width * 0.6, 230), height: 191) // 自适应宽度，最多230px
+                    .position(x: geometry.size.width / 2, y: 160 + 191/2) // 居中显示
                     .opacity(animateImage ? 1 : 0)
                     .scaleEffect(animateImage ? 1 : 0.8)
                     .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1), value: animateImage)
                 
-                // "1 Min"文字 - 精确位置：x: 165, y: 239, width: 103.99, height: 56.96
+                // "1 Min"文字 - 自适应居中定位
                 Text("1 Min")
                     .font(.system(size: 40, weight: .regular, design: .default))
                     .foregroundColor(.white)
                     .frame(width: 103.99, height: 56.96)
-                    .position(x: 180 + 103.99/2, y: 219 + 56.96/2) // 向右移动7像素，从239调整到219，向上移动20像素
+                    .position(x: geometry.size.width / 2, y: 219 + 56.96/2) // 居中显示
                     .opacity(animateMinText ? 1 : 0)
                     .scaleEffect(animateMinText ? 1 : 0.8)
                     .rotationEffect(.degrees(-9)) // 逆时针旋转10度
                     .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2), value: animateMinText)
                 
-                // Continue按钮 - 保持原有位置，统一字体样式
+                // Continue按钮 - 自适应宽度和底部定位
+                let buttonWidth = min(geometry.size.width * 0.8, 350) // 最大宽度350px
                 Button(action: {
                     // 防止连点保护
                     guard !isContinueButtonDisabled else { return }
@@ -83,13 +84,13 @@ struct OnboardingPage1View: View {
                 }) {
                     RoundedRectangle(cornerRadius: 50)
                         .fill(Color(hex: "0BA9D4"))
-                        .frame(width: 267, height: 52)
+                        .frame(width: buttonWidth, height: 52)
                         .overlay(
                             Text("onboarding.page1.continue".localized)
                                 .font(.system(size: 25, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
-                                .frame(width: 150.0, height: 22)
+                                .frame(width: buttonWidth * 0.8, height: 22) // 文本宽度为按钮宽度的80%
                                 .onAppear {
                                     // 调试信息
                                     let continueText = "onboarding.page1.continue".localized
@@ -97,7 +98,7 @@ struct OnboardingPage1View: View {
                                 }
                         )
                 }
-                .position(x: 62 + 267/2, y: 670)
+                .position(x: geometry.size.width / 2, y: geometry.size.height - 100) // 居中并定位到底部
                 .contentShape(RoundedRectangle(cornerRadius: 50))
                 .opacity(animateButton ? 1 : 0)
                 .offset(y: animateButton ? 0 : 20)

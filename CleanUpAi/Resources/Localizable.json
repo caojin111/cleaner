@@ -373,7 +373,7 @@
         "analyzing": "AI正在智能分析中..."
       },
       "page4": {
-        "title": "您有 %d 张照片等待清理",
+        "title": "等待清理",
         "subtitle": "开始清理，释放更多空间",
         "photos_count": "张照片",
         "start_cleaning": "开始清理",

@@ -48,7 +48,8 @@ struct OnboardingPage3View_New: View {
                     .frame(width: 266, height: 44)
                     .position(x: geometry.size.width / 2, y: 540) // y: 600 - 60
                 
-                // Continue按钮 - 保持原有位置，统一字体样式
+                // Continue按钮 - 自适应宽度和底部定位
+                let buttonWidth = min(geometry.size.width * 0.8, 350) // 最大宽度350px
                 Button(action: {
                     // 防止连点保护
                     guard !isContinueButtonDisabled else { return }
@@ -68,16 +69,16 @@ struct OnboardingPage3View_New: View {
                 }) {
                     RoundedRectangle(cornerRadius: 50)
                         .fill(Color(hex: "0BA9D4"))
-                        .frame(width: 267, height: 52)
+                        .frame(width: buttonWidth, height: 52)
                         .overlay(
                             Text("onboarding.page3.continue".localized)
                                 .font(.system(size: 25, weight: .semibold, design: .rounded))
                                 .foregroundColor(.white)
                                 .multilineTextAlignment(.center)
-                                .frame(width: 150.0, height: 22)
+                                .frame(width: buttonWidth * 0.8, height: 22) // 文本宽度为按钮宽度的80%
                         )
                 }
-                .position(x: 62 + 267/2, y: 670)
+                .position(x: geometry.size.width / 2, y: geometry.size.height - 100) // 居中并定位到底部
                 .contentShape(RoundedRectangle(cornerRadius: 50))
             }
         }
