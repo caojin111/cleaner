@@ -59,7 +59,7 @@ struct OnboardingPage1View: View {
                     .font(.system(size: 40, weight: .regular, design: .default))
                     .foregroundColor(.white)
                     .frame(width: 103.99, height: 56.96)
-                    .position(x: geometry.size.width / 2, y: 219 + 56.96/2) // 居中显示
+                    .position(x: geometry.size.width / 2 + 30, y: 219 + 56.96/2) // 右移30像素
                     .opacity(animateMinText ? 1 : 0)
                     .scaleEffect(animateMinText ? 1 : 0.8)
                     .rotationEffect(.degrees(-9)) // 逆时针旋转10度

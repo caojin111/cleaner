@@ -96,7 +96,7 @@ struct OnboardingPage2View: View {
                     .foregroundColor(.black)
                     .multilineTextAlignment(.leading)
                     .frame(width: geometry.size.width * 0.4, height: 22) // 自适应宽度
-                    .position(x: leftMargin + geometry.size.width * 0.25, y: 364 + 22/2) // 左侧定位
+                    .position(x: leftMargin + geometry.size.width * 0.25 + 15, y: 364 + 22/2) // 右移15像素
 
                 Spacer()
 
@@ -124,7 +124,7 @@ struct OnboardingPage2View: View {
                 .foregroundColor(Color.black.opacity(0.63))
                 .multilineTextAlignment(.leading)
                 .frame(width: geometry.size.width * 0.6, height: 22) // 自适应宽度
-                .position(x: leftMargin + geometry.size.width * 0.3, y: 389 + 22/2) // 左侧定位
+                .position(x: leftMargin + geometry.size.width * 0.3 + 42, y: 389 + 22/2) // 右移30像素
             
             // 通知权限卡片 - 自适应布局
             ZStack {
@@ -155,7 +155,7 @@ struct OnboardingPage2View: View {
                     .foregroundColor(.black)
                     .multilineTextAlignment(.leading)
                     .frame(width: geometry.size.width * 0.4, height: 22) // 自适应宽度
-                    .position(x: leftMargin + geometry.size.width * 0.25, y: 464 + 22/2) // 左侧定位
+                    .position(x: leftMargin + geometry.size.width * 0.25 + 10, y: 464 + 22/2) // 右移12像素
 
                 Spacer()
 
@@ -182,7 +182,7 @@ struct OnboardingPage2View: View {
                 .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
                 .foregroundColor(Color.black.opacity(0.63))
                 .frame(width: geometry.size.width * 0.6, height: 22) // 自适应宽度
-                .position(x: leftMargin + geometry.size.width * 0.3, y: 491 + 22/2) // 左侧定位
+                .position(x: leftMargin + geometry.size.width * 0.3 + 26, y: 491 + 22/2) // 右移25像素
             
             // Continue按钮 - 自适应宽度和底部定位
             let buttonWidth = min(geometry.size.width * 0.8, 350) // 最大宽度350px
