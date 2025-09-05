@@ -8,6 +8,7 @@
 import SwiftUI
 import UserNotifications
 import FirebaseCore
+import FirebaseAnalytics
 
 @main
 struct CleanUpAiApp: App {
@@ -37,14 +38,17 @@ class AppDelegate: NSObject, UIApplicationDelegate, UNUserNotificationCenterDele
         // 配置Firebase
         FirebaseApp.configure()
 
+        // 记录应用启动事件
+        FirebaseManager.shared.logAppOpen()
+
         // 设置通知代理
         UNUserNotificationCenter.current().delegate = self
 
-        // 测试权限本地化
-        PermissionManager.shared.testPermissionLocalization()
-
         // 重置Paywall倒计时（只有在app完全重新启动时）
         resetPaywallCountdown()
+
+        // 记录应用启动完成事件
+        FirebaseManager.shared.logUserAction(action: "app_launch_completed")
 
         return true
     }

@@ -101,38 +101,6 @@ class PermissionManager: ObservableObject {
         }
     }
     
-    // MARK: - Debug Methods
-    
-    /// 测试权限描述的本地化
-    func testPermissionLocalization() {
-        Logger.logInfo("=== 测试权限本地化 ===")
-        
-        // 测试从Info.plist读取的权限描述
-        if let photoLibraryDescription = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryUsageDescription") as? String {
-            Logger.logInfo("✅ 照片库权限描述: \(photoLibraryDescription)")
-        } else {
-            Logger.logError("❌ 无法读取照片库权限描述")
-        }
-        
-        if let photoLibraryAddDescription = Bundle.main.object(forInfoDictionaryKey: "NSPhotoLibraryAddUsageDescription") as? String {
-            Logger.logInfo("✅ 照片库添加权限描述: \(photoLibraryAddDescription)")
-        } else {
-            Logger.logError("❌ 无法读取照片库添加权限描述")
-        }
-        
-        if let notificationDescription = Bundle.main.object(forInfoDictionaryKey: "NSUserNotificationsUsageDescription") as? String {
-            Logger.logInfo("✅ 通知权限描述: \(notificationDescription)")
-        } else {
-            Logger.logError("❌ 无法读取通知权限描述")
-        }
-        
-        // 测试本地化字符串
-        Logger.logInfo("本地化照片库描述: \("permissions.photo_library_description".localized)")
-        Logger.logInfo("本地化通知描述: \("permissions.notification_description".localized)")
-        
-        Logger.logInfo("=== 权限本地化测试完成 ===")
-    }
-    
     var hasNotificationAccess: Bool {
         notificationStatus == .authorized
     }

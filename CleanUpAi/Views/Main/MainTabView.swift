@@ -8,11 +8,13 @@
 import SwiftUI
 import Foundation
 import OSLog
+import FirebaseAnalytics
 
 struct MainTabView: View {
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
     @StateObject private var recycleBinManager = RecycleBinManager.shared
     @State private var selectedTab = 0
+    @State private var previousTab = 0
     
     var body: some View {
         ZStack {
@@ -88,6 +90,25 @@ struct MainTabView: View {
                 setupTabBarAppearance()
                 Logger.logPageNavigation(from: "Paywall", to: "MainApp")
                 Logger.ui.debug("主界面已加载，当前Tab结构：照片、视频、回收站、更多")
+
+                // Firebase Analytics: 记录主界面浏览
+                FirebaseManager.shared.logScreenView(screenName: "MainTabView")
+                FirebaseManager.shared.logUserAction(action: "main_screen_viewed")
+
+                // 初始化previousTab
+                previousTab = selectedTab
+            }
+            .onChange(of: selectedTab) { newValue in
+                // Firebase Analytics: 记录Tab切换
+                let tabNames = ["Photos", "Videos", "RecycleBin", "More"]
+                if newValue < tabNames.count && previousTab < tabNames.count {
+                    FirebaseManager.shared.logUserAction(action: "tab_switched", parameters: [
+                        "from_tab": tabNames[previousTab],
+                        "to_tab": tabNames[newValue]
+                    ])
+                }
+                // 更新previousTab
+                previousTab = newValue
             }
         }
     }

@@ -98,7 +98,7 @@ class NotificationManager: ObservableObject {
         logger.info("移除每日清理提醒")
         
         let identifiers = ["daily_cleanup_reminder"]
-        await UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: identifiers)
         
         logger.info("每日清理提醒已移除")
     }
@@ -146,8 +146,8 @@ class NotificationManager: ObservableObject {
     func clearAllNotifications() async {
         logger.info("清除所有通知")
         
-        await UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        await UNUserNotificationCenter.current().removeAllDeliveredNotifications()
+        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+        UNUserNotificationCenter.current().removeAllDeliveredNotifications()
         
         logger.info("所有通知已清除")
     }

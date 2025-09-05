@@ -10,6 +10,7 @@ import Photos
 import Foundation
 import UIKit
 import OSLog
+import FirebaseAnalytics
 
 struct PhotosView: View {
     @StateObject private var photoAnalyzer = PhotoAnalyzer.shared
@@ -72,6 +73,10 @@ struct PhotosView: View {
         .onAppear {
             startAnalysisIfNeeded()
             Logger.ui.debug("PhotosView 已显示，开始检查分析状态")
+
+            // Firebase Analytics: 记录照片页面浏览
+            FirebaseManager.shared.logScreenView(screenName: "PhotosView")
+            FirebaseManager.shared.logUserAction(action: "photos_screen_viewed")
         }
         .onReceive(NotificationCenter.default.publisher(for: RecycleBinManager.itemRestoredNotification)) { notification in
             Logger.ui.info("收到回收站恢复通知，准备刷新照片分析与界面")

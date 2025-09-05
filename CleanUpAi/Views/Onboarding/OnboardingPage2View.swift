@@ -88,34 +88,29 @@ struct OnboardingPage2View: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.3), value: animatePhotoCard)
             }
 
-            // 照片库权限文本 - 自适应布局
-            HStack(spacing: 0) {
-                // 标题 - 自适应定位
-                Text("onboarding.page2.photo_permission".localized)
-                    .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
+            // 照片库权限标题 - 直接定位
+            Text("onboarding.page2.photo_permission".localized)
+                .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
+                .foregroundColor(.black)
+                .multilineTextAlignment(.leading)
+                .frame(width: geometry.size.width * 0.4, height: 22, alignment: .leading) // 自适应宽度
+                .position(x: leftMargin + geometry.size.width * 0.25 + 40, y: 364 + 22/2) // 右移40像素
+
+            // 照片库权限状态 - 右侧定位
+            ZStack {
+                // 状态背景
+                Image("ob2_status_bg")
+                    .resizable()
+                    .frame(width: 80, height: 30)
+                    .position(x: rightMargin - 40, y: 364 + 22/2) // 右侧定位
+
+                // 状态文本
+                Text(permissionManager.getPermissionStatusText(for: "photos"))
+                    .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
                     .foregroundColor(.black)
-                    .multilineTextAlignment(.leading)
-                    .frame(width: geometry.size.width * 0.4, height: 22) // 自适应宽度
-                    .position(x: leftMargin + geometry.size.width * 0.25 + 15, y: 364 + 22/2) // 右移15像素
-
-                Spacer()
-
-                // 状态 - 自适应定位
-                ZStack {
-                    // 状态背景
-                    Image("ob2_status_bg")
-                        .resizable()
-                        .frame(width: 80, height: 30)
-                        .position(x: rightMargin - 40, y: 364 + 22/2) // 右侧定位
-
-                    // 状态文本
-                    Text(permissionManager.getPermissionStatusText(for: "photos"))
-                        .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 80, height: 22)
-                        .position(x: rightMargin - 40, y: 364 + 22/2) // 右侧定位
-                }
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 80, height: 22)
+                    .position(x: rightMargin - 40, y: 364 + 22/2) // 右侧定位
             }
 
             // 照片库权限描述 - 自适应定位
@@ -124,7 +119,7 @@ struct OnboardingPage2View: View {
                 .foregroundColor(Color.black.opacity(0.63))
                 .multilineTextAlignment(.leading)
                 .frame(width: geometry.size.width * 0.6, height: 22) // 自适应宽度
-                .position(x: leftMargin + geometry.size.width * 0.3 + 42, y: 389 + 22/2) // 右移30像素
+                .position(x: leftMargin + geometry.size.width * 0.25 + 73, y: 389 + 22/2) // 右移60像素
             
             // 通知权限卡片 - 自适应布局
             ZStack {
@@ -147,34 +142,29 @@ struct OnboardingPage2View: View {
                 .animation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.4), value: animateNotificationCard)
             }
 
-            // 通知权限文本 - 自适应布局
-            HStack(spacing: 0) {
-                // 标题 - 自适应定位
-                Text("onboarding.page2.notification_permission".localized)
-                    .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
+            // 通知权限标题 - 直接定位
+            Text("onboarding.page2.notification_permission".localized)
+                .font(.system(size: 20, weight: .bold, design: .default)) // Figma: 20px, bold
+                .foregroundColor(.black)
+                .multilineTextAlignment(.leading)
+                .frame(width: geometry.size.width * 0.4, height: 22, alignment: .leading) // 自适应宽度
+                .position(x: leftMargin + geometry.size.width * 0.25 + 40, y: 464 + 22/2) // 右移40像素
+
+            // 通知权限状态 - 右侧定位
+            ZStack {
+                // 状态背景
+                Image("ob2_status_bg")
+                    .resizable()
+                    .frame(width: 80, height: 30)
+                    .position(x: rightMargin - 40, y: 463 + 22/2) // 右侧定位
+
+                // 状态文本
+                Text(permissionManager.getPermissionStatusText(for: "notifications"))
+                    .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
                     .foregroundColor(.black)
-                    .multilineTextAlignment(.leading)
-                    .frame(width: geometry.size.width * 0.4, height: 22) // 自适应宽度
-                    .position(x: leftMargin + geometry.size.width * 0.25 + 10, y: 464 + 22/2) // 右移12像素
-
-                Spacer()
-
-                // 状态 - 自适应定位
-                ZStack {
-                    // 状态背景
-                    Image("ob2_status_bg")
-                        .resizable()
-                        .frame(width: 80, height: 30)
-                        .position(x: rightMargin - 40, y: 463 + 22/2) // 右侧定位
-
-                    // 状态文本
-                    Text(permissionManager.getPermissionStatusText(for: "notifications"))
-                        .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
-                        .foregroundColor(.black)
-                        .multilineTextAlignment(.trailing)
-                        .frame(width: 80, height: 22)
-                        .position(x: rightMargin - 40, y: 463 + 22/2) // 右侧定位
-                }
+                    .multilineTextAlignment(.trailing)
+                    .frame(width: 80, height: 22)
+                    .position(x: rightMargin - 40, y: 463 + 22/2) // 右侧定位
             }
 
             // 通知权限描述 - 自适应定位
@@ -182,7 +172,7 @@ struct OnboardingPage2View: View {
                 .font(.system(size: 15, weight: .regular, design: .default)) // Figma: 15px, regular
                 .foregroundColor(Color.black.opacity(0.63))
                 .frame(width: geometry.size.width * 0.6, height: 22) // 自适应宽度
-                .position(x: leftMargin + geometry.size.width * 0.3 + 26, y: 491 + 22/2) // 右移25像素
+                .position(x: leftMargin + geometry.size.width * 0.25 + 59, y: 491 + 22/2) // 右移50像素
             
             // Continue按钮 - 自适应宽度和底部定位
             let buttonWidth = min(geometry.size.width * 0.8, 350) // 最大宽度350px
